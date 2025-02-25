@@ -22,14 +22,14 @@ gnome-terminal --tab --title="GUI" --command "bash -c \"source ~/.bashrc; rosrun
 sleep 1s;
 
 # To publish to "/space_nav/twist"
-# If you have a space mouse, you can use the following command to start the spacenav node:
-gnome-terminal --tab --title="Spacenav" --command "bash -c \"source ~/.bashrc; roslaunch spacenav_node classic.launch; exec bash\"";
+# # If you have a space mouse, you can use the following command to start the spacenav node:
+# gnome-terminal --tab --title="Spacenav" --command "bash -c \"source ~/.bashrc; roslaunch spacenav_node classic.launch; exec bash\"";
 # Otherwise, you can use rqt_ez_publisher:
 gnome-terminal --tab --title="RQT_EZ_PUBLSHER" --command "bash -c \"source ~/.bashrc; rosrun rqt_ez_publisher rqt_ez_publisher; exec bash\"";
 sleep 1s;
 
-gnome-terminal --tab --title="Controller" --command "bash -c \"source ~/.bashrc; roslaunch deformable_manipulations_composite_layup velocity_controller.launch; exec bash\"";
-sleep 1s;
+# gnome-terminal --tab --title="Controller" --command "bash -c \"source ~/.bashrc; roslaunch deformable_manipulations_composite_layup velocity_controller.launch; exec bash\"";
+# sleep 1s;
 
 # To start the controller, call the service with command:
 # rosservice call /composite_layup_velocity_controller/set_enable_controller "data: true" 

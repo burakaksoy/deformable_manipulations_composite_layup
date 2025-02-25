@@ -64,8 +64,8 @@ custom_static_particles: [] # specify the particle ids to set as static
 max_sticking_force: [100.0, 100.0, 10.0] # N, If the force is greater than this value, the sticked particle will be detached, default: [100.0, 100.0, 100.0]
 max_sticking_force_check_mode: 2 # -1: Disabled, 0:X, 1:Y, 2:Z, 3:Norm (Default: -1)
 
-custom_static_particles_cmd_vel_topic_prefix: "custom_static_particles_cmd_vel_" 
-custom_static_particles_odom_topic_prefix: "custom_static_particles_odom_"
+custom_static_particles_cmd_vel_topic_prefix: "cmd_vel_particle_" 
+custom_static_particles_odom_topic_prefix: "odom_particle_"
 # Note: The topics names will include the id number in the end. 
 # For example, for custom_static_particles_odom_topic_prefix: "custom_static_particles_odom_"
 # and custom_static_particles: [0,27], we will have two odom subscriber topics named:
