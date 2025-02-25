@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/burak/catkin_ws_deformable/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/burak/catkin_ws_kinect/src/Azure_Kinect_ROS_Driver/include/**",
+        "/home/burak/catkin_ws_deformable/src/deformable_manipulations_composite_layup/include/**",
+        "/home/burak/catkin_ws_deformable/src/dlo_simulator_stiff_rods/include/**",
+        "/home/burak/catkin_ws_deformable/src/fabric_simulator/include/**",
+        "/home/burak/catkin_ws_deformable/src/rviz_odom_trail_plugin/include/**",
+        "/home/burak/catkin_ws_deformable/src/rviz_ortho_view_controller/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+<arg name="namespace" default="" />
+<arg name="fabric_simulator_config" default="" />
+
+<!-- Load fabric Default parameters -->
+<rosparam ns="$(arg namespace)" command="load" file="$(arg fabric_simulator_config)" subst_value="true" />
+
+</launch>

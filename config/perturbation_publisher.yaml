@@ -1,0 +1,14 @@
+# Global parameters
+
+# Perturbation Amount Parameters
+delta_x: 0.1 # meters
+delta_y: 0.1 # meters
+delta_z: 0.1 # meters
+
+# 0.034906 radians = 2 degrees
+# 0.0174533 radians = 1 degree
+# 0.1745329 radians = 10 degrees
+
+# pub_rate_odom: 500
+
+

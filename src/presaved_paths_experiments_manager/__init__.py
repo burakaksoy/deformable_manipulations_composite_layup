@@ -1,0 +1,4 @@
+from .rosbag_controlled_recording import RosbagControlledRecorder
+
+from .presaved_paths_experiments_manager import PresavedPathsExperimentsManager
+__all__ = ['PresavedPathsExperimentsManager']

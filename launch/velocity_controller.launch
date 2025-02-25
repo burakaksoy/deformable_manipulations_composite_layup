@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="controller_name" default="composite_layup_velocity_controller" />
+
+    <arg name="control_rate" default="100"/>
+
+    <node type="velocity_controller.py" name="$(arg controller_name)" pkg="deformable_manipulations_composite_layup" output="screen"> 
+        <rosparam command="load" file="$(find deformable_manipulations_composite_layup)/config/velocity_controller.yaml" subst_value="true" />
+
+        <rosparam param="pub_rate_odom"                      subst_value="true">$(arg control_rate)</rosparam>
+        
+    </node>
+
+</launch>

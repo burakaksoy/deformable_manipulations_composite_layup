@@ -1,0 +1,209 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Particle ID parameter: MAKE SURE YOU SPECIFY IT CORRECTLY -->
+    <arg name="particle_id" default="0"/> 
+
+    <!-- Fabric Default parameter file location -->
+    <arg name="fabric_simulator_config" default="$(find deformable_manipulations_composite_layup)/config/fabric_simulator.yaml"/>
+    
+    <!-- Change below argument values to match with the yaml files -->
+    <arg name="fabric_state_topic_name"     default="fabric_state"/>
+    <arg name="change_particle_dynamicity_topic_name" default="change_particle_dynamicity"/>
+    <arg name="fabric_markers_topic_name"   default="fabric_markers"/>
+    <arg name="rb_markers_topic_name"       default="rigid_body_markers"/>
+    <arg name="min_dist_to_rb_topic_name"   default="min_dist_to_rigid_bodies"/>
+    <arg name="min_dist_markers_topic_name" default="min_dist_markers"/>
+
+    <arg name="custom_static_particles_odom_topic_prefix"  default="odom_particle_"/>
+    <arg name="custom_static_particles_cmd_vel_topic_prefix"  default="cmd_vel_particle_"/>
+    
+    <arg name="fabric_node_console_logs"  default="log"/>
+
+    <arg name="is_collision_handling_enabled"  default="true"/>
+
+    <arg name="line_marker_scale_multiplier"  default="2.0"/>
+    <arg name="line_marker_alpha"  default="0.7"/>
+    <arg name="min_dist_line_marker_scale_multiplier"  default="1.0"/> 
+
+    <!-- x -->
+    <group>
+        <arg name="axis" value="x" />
+        
+        <arg name="simulation_name_prefix" value="fabric_simulator_" />
+        
+        <arg name="axis_str" value="" if="$(eval arg('axis') == '')" />
+        <arg name="axis_str" value="_$(arg axis)" unless="$(eval arg('axis') == '')" />
+
+        <arg name="simulation_name" value="$(arg simulation_name_prefix)$(arg particle_id)$(arg axis_str)" />
+
+        <!-- Load parameters into fabric_simulator's private namespace -->
+        <include file="$(find deformable_manipulations_composite_layup)/launch/load_parameters.launch">
+            <arg name="namespace" value="$(arg simulation_name)" />
+            <arg name="fabric_simulator_config" value="$(arg fabric_simulator_config)" />
+        </include>
+
+        <!-- Override is_collision_handling_enabled parameter using the argument -->
+        <rosparam param="$(arg simulation_name)/is_collision_handling_enabled" subst_value="true">$(arg is_collision_handling_enabled)</rosparam>
+
+        <!-- Simulation -->
+        <node type="fabric_simulator_node" name="$(arg simulation_name)" pkg="fabric_simulator" output="$(arg fabric_node_console_logs)">        
+            <!-- Subscriptions -->
+            <remap from="/$(arg custom_static_particles_odom_topic_prefix)$(arg particle_id)" 
+                to="/$(arg custom_static_particles_odom_topic_prefix)$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg custom_static_particles_cmd_vel_topic_prefix)$(arg particle_id)" 
+                to="/$(arg custom_static_particles_cmd_vel_topic_prefix)$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg change_particle_dynamicity_topic_name)" 
+                to="/$(arg change_particle_dynamicity_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+            
+            <!-- Publishers -->
+            <remap from="/$(arg fabric_state_topic_name)" 
+                to="/$(arg fabric_state_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+        
+            <remap from="/$(arg fabric_markers_topic_name)" 
+                to="/$(arg fabric_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg rb_markers_topic_name)" 
+                to="/$(arg rb_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg min_dist_to_rb_topic_name)" 
+                to="/$(arg min_dist_to_rb_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg min_dist_markers_topic_name)" 
+                to="/$(arg min_dist_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <!-- Parameters -->
+            <rosparam param="fabric_visualization_mode"                 subst_value="true">1</rosparam>
+            <rosparam param="line_marker_scale_multiplier"              subst_value="true">$(arg line_marker_scale_multiplier)</rosparam>
+            <rosparam param="line_marker_color_rgba"                    subst_value="true">[1.0, 0.0, 0.0, $(arg line_marker_alpha)]</rosparam>
+            <rosparam param="rb_visualization_mode"                     subst_value="true">-1</rosparam>
+            <rosparam param="min_dist_line_marker_scale_multiplier"     subst_value="true">$(arg min_dist_line_marker_scale_multiplier)</rosparam>
+            <rosparam param="min_dist_line_marker_color_rgba"           subst_value="true">[1.0, 0.0, 0.0, 1.0]</rosparam>
+
+        </node>
+
+    </group>
+
+    <!-- y -->
+    <group>
+        <arg name="axis" value="y" />
+        
+        <arg name="simulation_name_prefix" value="fabric_simulator_" />
+        
+        <arg name="axis_str" value="" if="$(eval arg('axis') == '')" />
+        <arg name="axis_str" value="_$(arg axis)" unless="$(eval arg('axis') == '')" />
+
+        <arg name="simulation_name" value="$(arg simulation_name_prefix)$(arg particle_id)$(arg axis_str)" />
+
+        <!-- Load parameters into fabric_simulator's private namespace -->
+        <include file="$(find deformable_manipulations_composite_layup)/launch/load_parameters.launch">
+            <arg name="namespace" value="$(arg simulation_name)" />
+            <arg name="fabric_simulator_config" value="$(arg fabric_simulator_config)" />
+        </include>
+
+        <!-- Override is_collision_handling_enabled parameter using the argument -->
+        <rosparam param="$(arg simulation_name)/is_collision_handling_enabled" subst_value="true">$(arg is_collision_handling_enabled)</rosparam>
+
+        <!-- Simulation -->
+        <node type="fabric_simulator_node" name="$(arg simulation_name)" pkg="fabric_simulator" output="$(arg fabric_node_console_logs)">        
+            <!-- Subscriptions -->
+            <remap from="/$(arg custom_static_particles_odom_topic_prefix)$(arg particle_id)" 
+                to="/$(arg custom_static_particles_odom_topic_prefix)$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg custom_static_particles_cmd_vel_topic_prefix)$(arg particle_id)" 
+                to="/$(arg custom_static_particles_cmd_vel_topic_prefix)$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg change_particle_dynamicity_topic_name)" 
+                to="/$(arg change_particle_dynamicity_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+            
+            <!-- Publishers -->
+            <remap from="/$(arg fabric_state_topic_name)" 
+                to="/$(arg fabric_state_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+        
+            <remap from="/$(arg fabric_markers_topic_name)" 
+                to="/$(arg fabric_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg rb_markers_topic_name)" 
+                to="/$(arg rb_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg min_dist_to_rb_topic_name)" 
+                to="/$(arg min_dist_to_rb_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg min_dist_markers_topic_name)" 
+                to="/$(arg min_dist_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <!-- Parameters -->
+            <rosparam param="fabric_visualization_mode"                 subst_value="true">1</rosparam>
+            <rosparam param="line_marker_scale_multiplier"              subst_value="true">$(arg line_marker_scale_multiplier)</rosparam>
+            <rosparam param="line_marker_color_rgba"                    subst_value="true">[0.0, 1.0, 0.0, $(arg line_marker_alpha)]</rosparam>
+            <rosparam param="rb_visualization_mode"                     subst_value="true">-1</rosparam>
+            <rosparam param="min_dist_line_marker_scale_multiplier"     subst_value="true">$(arg min_dist_line_marker_scale_multiplier)</rosparam>
+            <rosparam param="min_dist_line_marker_color_rgba"           subst_value="true">[0.0, 1.0, 0.0, 1.0]</rosparam>
+
+        </node>
+
+    </group>
+    
+    <!-- z -->
+    <group>
+        <arg name="axis" value="z" />
+
+        <arg name="simulation_name_prefix" value="fabric_simulator_" />
+        
+        <arg name="axis_str" value="" if="$(eval arg('axis') == '')" />
+        <arg name="axis_str" value="_$(arg axis)" unless="$(eval arg('axis') == '')" />
+
+        <arg name="simulation_name" value="$(arg simulation_name_prefix)$(arg particle_id)$(arg axis_str)" />
+
+        <!-- Load parameters into fabric_simulator's private namespace -->
+        <include file="$(find deformable_manipulations_composite_layup)/launch/load_parameters.launch">
+            <arg name="namespace" value="$(arg simulation_name)" />
+            <arg name="fabric_simulator_config" value="$(arg fabric_simulator_config)" />
+        </include>
+
+        <!-- Override is_collision_handling_enabled parameter using the argument -->
+        <rosparam param="$(arg simulation_name)/is_collision_handling_enabled" subst_value="true">$(arg is_collision_handling_enabled)</rosparam>
+
+        <!-- Simulation -->
+        <node type="fabric_simulator_node" name="$(arg simulation_name)" pkg="fabric_simulator" output="$(arg fabric_node_console_logs)">        
+            <!-- Subscriptions -->
+            <remap from="/$(arg custom_static_particles_odom_topic_prefix)$(arg particle_id)" 
+                to="/$(arg custom_static_particles_odom_topic_prefix)$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg custom_static_particles_cmd_vel_topic_prefix)$(arg particle_id)" 
+                to="/$(arg custom_static_particles_cmd_vel_topic_prefix)$(arg particle_id)$(arg axis_str)"/>
+            
+            <remap from="/$(arg change_particle_dynamicity_topic_name)" 
+                to="/$(arg change_particle_dynamicity_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+            
+            <!-- Publishers -->
+            <remap from="/$(arg fabric_state_topic_name)" 
+                to="/$(arg fabric_state_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+        
+            <remap from="/$(arg fabric_markers_topic_name)" 
+                to="/$(arg fabric_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg rb_markers_topic_name)" 
+                to="/$(arg rb_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg min_dist_to_rb_topic_name)" 
+                to="/$(arg min_dist_to_rb_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg min_dist_markers_topic_name)" 
+                to="/$(arg min_dist_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <!-- Parameters -->
+            <rosparam param="fabric_visualization_mode"                 subst_value="true">1</rosparam>
+            <rosparam param="line_marker_scale_multiplier"              subst_value="true">$(arg line_marker_scale_multiplier)</rosparam>
+            <rosparam param="line_marker_color_rgba"                    subst_value="true">[0.0, 0.0, 1.0, $(arg line_marker_alpha)]</rosparam>
+            <rosparam param="rb_visualization_mode"                     subst_value="true">-1</rosparam>
+            <rosparam param="min_dist_line_marker_scale_multiplier"     subst_value="true">$(arg min_dist_line_marker_scale_multiplier)</rosparam>
+            <rosparam param="min_dist_line_marker_color_rgba"           subst_value="true">[0.0, 0.0, 1.0, 1.0]</rosparam>
+
+        </node>
+
+    </group>
+
+</launch>
