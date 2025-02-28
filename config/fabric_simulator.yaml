@@ -46,7 +46,7 @@ fabric_scale: [1, 1, 1] # DEFAULT: [1, 1, 1]
 
 # If fabric_mesh_path is not empty string (i.e., "") num_hang_corners is NOT used.
 # Also, for some rotations specified this may NOT work.
-num_hang_corners: 4 # num of corners to hang fabric from (options: 0,1,2,3,4)
+num_hang_corners: 0 # num of corners to hang fabric from (options: 0,1,2,3,4)
 
 custom_static_particles: [] # specify the particle ids to set as static
 # Note: we also create an odom subscriber for each custom static particle to update their poses online.
@@ -57,7 +57,7 @@ custom_static_particles: [] # specify the particle ids to set as static
 # custom_static_particles: [930,960] # specify the particle ids to set as static
 
 ##  Fabric Corners for 1.5x1.0-15 resolution mesh 
-# custom_static_particles: [  0,15,352,367] # specify the particle ids to set as static
+custom_static_particles: [  0,15,352,367] # specify the particle ids to set as static
 # custom_static_particles: [0,15] # specify the particle ids to set as static
 # custom_static_particles: [352,367] # specify the particle ids to set as static
 
@@ -92,6 +92,10 @@ min_dist_to_rb_pub_rate: 50.0 # Hz, frequency to publish minimum distances to th
 
 # Rigid body scene .json file, If empty, no rigid bodies exist in the simulator
 rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal.json 
+
+is_dependant_simulator: false # (default: false) if true, the simulator subscribes to a topic to get the particle dynamicity change updates to synchronize with the main simulator, otherwise the simulator publishes the particle dynamicity change updates to a topic for other simulators to synchronize. The changes are transferred via a custom synchronization topic.
+
+sync_particle_updates_topic_name: "sync_particle_updates" # topic name to publish the particle dynamicity change updates to synchronize with other simulators. Either publish or subscribe to this topic based on is_dependant_simulator flag.
 
 # FABRIC VISUALIZATION RELATED PARAMETERS
 fabric_frame_id: "map" # the reference tf frame ID that the visualization marker msgs are published in.

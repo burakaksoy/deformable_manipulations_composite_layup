@@ -10,10 +10,13 @@
     <!-- Change below argument values to match with the yaml files -->
     <arg name="fabric_state_topic_name"     default="fabric_state"/>
     <arg name="change_particle_dynamicity_topic_name" default="change_particle_dynamicity"/>
+    <arg name="fix_nearest_fabric_particle_topic_name" default="fix_nearest_fabric_particle_request"/>
+    <arg name="attach_external_odom_frame_topic_name" default="attach_external_odom_frame_request"/>
     <arg name="fabric_markers_topic_name"   default="fabric_markers"/>
     <arg name="rb_markers_topic_name"       default="rigid_body_markers"/>
     <arg name="min_dist_to_rb_topic_name"   default="min_dist_to_rigid_bodies"/>
     <arg name="min_dist_markers_topic_name" default="min_dist_markers"/>
+    <arg name="face_tri_ids_topic_name"     default="face_tri_ids"/>
 
     <arg name="custom_static_particles_odom_topic_prefix"  default="odom_particle_"/>
     <arg name="custom_static_particles_cmd_vel_topic_prefix"  default="cmd_vel_particle_"/>
@@ -22,7 +25,12 @@
 
     <arg name="is_collision_handling_enabled"  default="true"/>
 
-    <arg name="line_marker_scale_multiplier"  default="2.0"/>
+    <arg name="fabric_visualization_mode"  default="1"/> 
+    <arg name="max_sticking_force_check_mode"  default="-1"/> 
+
+    <arg name="is_dependant_simulator"  default="true"/>
+
+    <arg name="line_marker_scale_multiplier"  default="0.5"/>
     <arg name="line_marker_alpha"  default="0.7"/>
     <arg name="min_dist_line_marker_scale_multiplier"  default="1.0"/> 
 
@@ -46,6 +54,12 @@
         <!-- Override is_collision_handling_enabled parameter using the argument -->
         <rosparam param="$(arg simulation_name)/is_collision_handling_enabled" subst_value="true">$(arg is_collision_handling_enabled)</rosparam>
 
+        <!-- Override max_sticking_force_check_mode parameter using the argument -->
+        <rosparam param="$(arg simulation_name)/max_sticking_force_check_mode" subst_value="true">$(arg max_sticking_force_check_mode)</rosparam>
+
+        <!-- Override is_dependant_simulator parameter using the argument -->
+        <rosparam param="$(arg simulation_name)/is_dependant_simulator" subst_value="true">$(arg is_dependant_simulator)</rosparam>
+
         <!-- Simulation -->
         <node type="fabric_simulator_node" name="$(arg simulation_name)" pkg="fabric_simulator" output="$(arg fabric_node_console_logs)">        
             <!-- Subscriptions -->
@@ -57,6 +71,12 @@
 
             <remap from="/$(arg change_particle_dynamicity_topic_name)" 
                 to="/$(arg change_particle_dynamicity_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg fix_nearest_fabric_particle_topic_name)" 
+                to="/$(arg fix_nearest_fabric_particle_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg attach_external_odom_frame_topic_name)" 
+                to="/$(arg attach_external_odom_frame_topic_name)_$(arg particle_id)$(arg axis_str)"/>
             
             <!-- Publishers -->
             <remap from="/$(arg fabric_state_topic_name)" 
@@ -74,8 +94,11 @@
             <remap from="/$(arg min_dist_markers_topic_name)" 
                 to="/$(arg min_dist_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
 
+            <remap from="/$(arg face_tri_ids_topic_name)" 
+                to="/$(arg face_tri_ids_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
             <!-- Parameters -->
-            <rosparam param="fabric_visualization_mode"                 subst_value="true">1</rosparam>
+            <rosparam param="fabric_visualization_mode"                 subst_value="true">$(arg fabric_visualization_mode)</rosparam>
             <rosparam param="line_marker_scale_multiplier"              subst_value="true">$(arg line_marker_scale_multiplier)</rosparam>
             <rosparam param="line_marker_color_rgba"                    subst_value="true">[1.0, 0.0, 0.0, $(arg line_marker_alpha)]</rosparam>
             <rosparam param="rb_visualization_mode"                     subst_value="true">-1</rosparam>
@@ -106,6 +129,12 @@
         <!-- Override is_collision_handling_enabled parameter using the argument -->
         <rosparam param="$(arg simulation_name)/is_collision_handling_enabled" subst_value="true">$(arg is_collision_handling_enabled)</rosparam>
 
+        <!-- Override max_sticking_force_check_mode parameter using the argument -->
+        <rosparam param="$(arg simulation_name)/max_sticking_force_check_mode" subst_value="true">$(arg max_sticking_force_check_mode)</rosparam>
+
+        <!-- Override is_dependant_simulator parameter using the argument -->
+        <rosparam param="$(arg simulation_name)/is_dependant_simulator" subst_value="true">$(arg is_dependant_simulator)</rosparam>
+
         <!-- Simulation -->
         <node type="fabric_simulator_node" name="$(arg simulation_name)" pkg="fabric_simulator" output="$(arg fabric_node_console_logs)">        
             <!-- Subscriptions -->
@@ -117,6 +146,12 @@
 
             <remap from="/$(arg change_particle_dynamicity_topic_name)" 
                 to="/$(arg change_particle_dynamicity_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg fix_nearest_fabric_particle_topic_name)" 
+                to="/$(arg fix_nearest_fabric_particle_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg attach_external_odom_frame_topic_name)" 
+                to="/$(arg attach_external_odom_frame_topic_name)_$(arg particle_id)$(arg axis_str)"/>
             
             <!-- Publishers -->
             <remap from="/$(arg fabric_state_topic_name)" 
@@ -134,8 +169,11 @@
             <remap from="/$(arg min_dist_markers_topic_name)" 
                 to="/$(arg min_dist_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
 
+            <remap from="/$(arg face_tri_ids_topic_name)" 
+                to="/$(arg face_tri_ids_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
             <!-- Parameters -->
-            <rosparam param="fabric_visualization_mode"                 subst_value="true">1</rosparam>
+            <rosparam param="fabric_visualization_mode"                 subst_value="true">$(arg fabric_visualization_mode)</rosparam>
             <rosparam param="line_marker_scale_multiplier"              subst_value="true">$(arg line_marker_scale_multiplier)</rosparam>
             <rosparam param="line_marker_color_rgba"                    subst_value="true">[0.0, 1.0, 0.0, $(arg line_marker_alpha)]</rosparam>
             <rosparam param="rb_visualization_mode"                     subst_value="true">-1</rosparam>
@@ -166,6 +204,12 @@
         <!-- Override is_collision_handling_enabled parameter using the argument -->
         <rosparam param="$(arg simulation_name)/is_collision_handling_enabled" subst_value="true">$(arg is_collision_handling_enabled)</rosparam>
 
+        <!-- Override max_sticking_force_check_mode parameter using the argument -->
+        <rosparam param="$(arg simulation_name)/max_sticking_force_check_mode" subst_value="true">$(arg max_sticking_force_check_mode)</rosparam>
+
+        <!-- Override is_dependant_simulator parameter using the argument -->
+        <rosparam param="$(arg simulation_name)/is_dependant_simulator" subst_value="true">$(arg is_dependant_simulator)</rosparam>
+
         <!-- Simulation -->
         <node type="fabric_simulator_node" name="$(arg simulation_name)" pkg="fabric_simulator" output="$(arg fabric_node_console_logs)">        
             <!-- Subscriptions -->
@@ -177,6 +221,12 @@
             
             <remap from="/$(arg change_particle_dynamicity_topic_name)" 
                 to="/$(arg change_particle_dynamicity_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg fix_nearest_fabric_particle_topic_name)" 
+                to="/$(arg fix_nearest_fabric_particle_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
+            <remap from="/$(arg attach_external_odom_frame_topic_name)" 
+                to="/$(arg attach_external_odom_frame_topic_name)_$(arg particle_id)$(arg axis_str)"/>
             
             <!-- Publishers -->
             <remap from="/$(arg fabric_state_topic_name)" 
@@ -194,8 +244,11 @@
             <remap from="/$(arg min_dist_markers_topic_name)" 
                 to="/$(arg min_dist_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
 
+            <remap from="/$(arg face_tri_ids_topic_name)" 
+                to="/$(arg face_tri_ids_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+
             <!-- Parameters -->
-            <rosparam param="fabric_visualization_mode"                 subst_value="true">1</rosparam>
+            <rosparam param="fabric_visualization_mode"                 subst_value="true">$(arg fabric_visualization_mode)</rosparam>
             <rosparam param="line_marker_scale_multiplier"              subst_value="true">$(arg line_marker_scale_multiplier)</rosparam>
             <rosparam param="line_marker_color_rgba"                    subst_value="true">[0.0, 0.0, 1.0, $(arg line_marker_alpha)]</rosparam>
             <rosparam param="rb_visualization_mode"                     subst_value="true">-1</rosparam>

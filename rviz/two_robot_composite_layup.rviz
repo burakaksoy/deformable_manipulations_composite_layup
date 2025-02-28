@@ -6,18 +6,14 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Group-MarkerArray-Fabric-01
-        - /Group-MarkerArray-Fabric-151
-        - /Group-MarkerArray-Fabric-MinDist-01
-        - /Group-MarkerArray-Fabric-MinDist-151
         - /Group-Odom-Fabric-Particles-History1/Odometry-01
         - /Group-Odom-Fabric-Particles1/Odometry-01
         - /Group-Odom-Fabric-Particles1/Odometry-151
         - /Group-Odom-Fabric-Particles1/Odometry-3521
         - /Group-Odom-Fabric-Particles1/Odometry-3671
         - /Group-Odom-hands1/Odometry-hand-21
-      Splitter Ratio: 0.6734007000923157
-    Tree Height: 1790
+      Splitter Ratio: 0.8977987170219421
+    Tree Height: 1801
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -87,62 +83,6 @@ Visualization Manager:
         "": true
       Queue Size: 100
       Value: true
-    - Class: rviz/Group
-      Displays:
-        - Class: rviz/MarkerArray
-          Enabled: true
-          Marker Topic: /fabric_markers_0_x
-          Name: MarkerArray-Fabric-0-X
-          Namespaces:
-            "": true
-          Queue Size: 100
-          Value: true
-        - Class: rviz/MarkerArray
-          Enabled: true
-          Marker Topic: /fabric_markers_0_y
-          Name: MarkerArray-Fabric-0-Y
-          Namespaces:
-            "": true
-          Queue Size: 100
-          Value: true
-        - Class: rviz/MarkerArray
-          Enabled: true
-          Marker Topic: /fabric_markers_0_z
-          Name: MarkerArray-Fabric-0-Z
-          Namespaces:
-            "": true
-          Queue Size: 100
-          Value: true
-      Enabled: true
-      Name: Group-MarkerArray-Fabric-0
-    - Class: rviz/Group
-      Displays:
-        - Class: rviz/MarkerArray
-          Enabled: true
-          Marker Topic: /fabric_markers_15_x
-          Name: MarkerArray-Fabric-15-X
-          Namespaces:
-            "": true
-          Queue Size: 100
-          Value: true
-        - Class: rviz/MarkerArray
-          Enabled: true
-          Marker Topic: /fabric_markers_15_y
-          Name: MarkerArray-Fabric-15-Y
-          Namespaces:
-            "": true
-          Queue Size: 100
-          Value: true
-        - Class: rviz/MarkerArray
-          Enabled: true
-          Marker Topic: /fabric_markers_15_z
-          Name: MarkerArray-Fabric-15-Z
-          Namespaces:
-            "": true
-          Queue Size: 100
-          Value: true
-      Enabled: true
-      Name: Group-MarkerArray-Fabric-15
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /min_dist_markers
@@ -155,10 +95,66 @@ Visualization Manager:
       Displays:
         - Class: rviz/MarkerArray
           Enabled: true
+          Marker Topic: /fabric_markers_0_x
+          Name: MarkerArray-Fabric-0-X
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /fabric_markers_0_y
+          Name: MarkerArray-Fabric-0-Y
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /fabric_markers_0_z
+          Name: MarkerArray-Fabric-0-Z
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+      Enabled: false
+      Name: Group-MarkerArray-Fabric-0
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /fabric_markers_15_x
+          Name: MarkerArray-Fabric-15-X
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /fabric_markers_15_y
+          Name: MarkerArray-Fabric-15-Y
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /fabric_markers_15_z
+          Name: MarkerArray-Fabric-15-Z
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+      Enabled: false
+      Name: Group-MarkerArray-Fabric-15
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/MarkerArray
+          Enabled: true
           Marker Topic: /min_dist_markers_0_x
           Name: MarkerArray-Fabric-MinDist-0-X
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
         - Class: rviz/MarkerArray
@@ -166,7 +162,7 @@ Visualization Manager:
           Marker Topic: /min_dist_markers_0_y
           Name: MarkerArray-Fabric-MinDist-0-Y
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
         - Class: rviz/MarkerArray
@@ -174,10 +170,10 @@ Visualization Manager:
           Marker Topic: /min_dist_markers_0_z
           Name: MarkerArray-Fabric-MinDist-0-Z
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
-      Enabled: true
+      Enabled: false
       Name: Group-MarkerArray-Fabric-MinDist-0
     - Class: rviz/Group
       Displays:
@@ -186,7 +182,7 @@ Visualization Manager:
           Marker Topic: /min_dist_markers_15_x
           Name: MarkerArray-Fabric-MinDist-15-X
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
         - Class: rviz/MarkerArray
@@ -194,7 +190,7 @@ Visualization Manager:
           Marker Topic: /min_dist_markers_15_y
           Name: MarkerArray-Fabric-MinDist-15-Y
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
         - Class: rviz/MarkerArray
@@ -202,10 +198,10 @@ Visualization Manager:
           Marker Topic: /min_dist_markers_15_z
           Name: MarkerArray-Fabric-MinDist-15-Z
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
-      Enabled: true
+      Enabled: false
       Name: Group-MarkerArray-Fabric-MinDist-15
     - Class: rviz/Group
       Displays:
@@ -705,7 +701,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.4564671516418457
+      Distance: 4.671741008758545
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -713,17 +709,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.0857282876968384
-        Y: 2.9056060314178467
-        Z: 0.2890786826610565
+        X: 1.2231606245040894
+        Y: 2.0217063426971436
+        Z: 0.08893400430679321
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7103998064994812
+      Pitch: 0.7254011631011963
       Target Frame: <Fixed Frame>
-      Yaw: 0.70133376121521
+      Yaw: 0.8662861585617065
     Saved:
       - Class: rviz/Orbit
         Distance: 4.851423263549805
@@ -823,7 +819,7 @@ Window Geometry:
   Height: 2123
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd000000040000000000000439000007d9fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000007300fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000004c000007d9000000fb00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c000002610000000100000117000007d9fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000004c000007d9000000d100fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000f0000000060fc0100000002fb0000000800540069006d0065000000000000000f000000059a00fffffffb0000000800540069006d0065010000000000000450000000000000000000000ac0000007d900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001bd000007dffc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000006d00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000048000007df000000ee00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c000002610000000100000117000007d9fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000004c000007d9000000c700fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e1000001970000000300000f0000000060fc0100000002fb0000000800540069006d0065000000000000000f000000056500fffffffb0000000800540069006d0065010000000000000450000000000000000000000d3c000007df00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -833,5 +829,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 3840
-  X: 0
+  X: 3840
   Y: 0
