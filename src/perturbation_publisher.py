@@ -18,7 +18,7 @@ from fabric_simulator.msg import SegmentStateArray
 
 class PerturbationPublisherNode:
     def __init__(self):
-        self.pub_rate_odom = rospy.get_param("~pub_rate_odom", 50)
+        self.pub_rate_odom = rospy.get_param("~pub_rate_odom", 100)
 
         self.deformable_object_state_topic_name = rospy.get_param("/fabric_state_topic_name") # subscribed
 

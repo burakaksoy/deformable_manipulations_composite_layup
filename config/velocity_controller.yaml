@@ -2,7 +2,6 @@
 nominal_control_enabled: True # default:True
 obstacle_avoidance_enabled: True # default:True 
 stress_avoidance_enabled: True # default:True 
-# NOTE: To test the controller without triggering the planning see the path planning parameters below as well!
 
 # if the control output is invalid for this time, the controller stops.
 # If set to less than or equal to zero, the controller does not stop.
@@ -12,7 +11,7 @@ valid_control_output_wait_timeout: 0.0 # (seconds) (To disable the timeout, set 
 ## ----------------------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------------------
-real_robot_mode_enabled: True # default: False # If True, the real robot is used, publish the commands to the real robot as geometry_msgs/Twist messages
+real_robot_mode_enabled: False # default: False # If True, the real robot is used, publish the commands to the real robot as geometry_msgs/Twist messages
 
 # The topic names to publish the twist messages for the real robots
 # The order is important, the first robot is assumed to control the first custom static particle id in the fabric simulation, The second robot is assumed to control the second custom static particle id in the fabric simulation etc.
@@ -26,138 +25,31 @@ robot_command_topic_names:
 ## ----------------------------------------------------------------------------------------
 ## Nominal Velocity controller parameters
 
-# Nominal Controller Gains [x,y,z, Rx,Ry,Rz]
-kp: [0.5,0.5,0.5, 0.75,0.75,0.75]
+# Nominal Controller Gains [x,y,z]
+# kp: [1.0,1.0,1.0]
+kp: [0.5,0.5,0.5]
+# kp: [0.06,0.06,0.03]
+# kp: [0.05,0.05,0.025]
+# kp: [0.03,0.03,0.03]
+# kp: [0.02,0.02,0.02]
 
-# kp: [0.05,0.05,0.025, 0.15,0.15,0.15]
-# kp: [1.0,1.0,1.0, 1.5,1.5,1.5]
-
-# kp: [0.03,0.03,0.03, 0.05,0.05,0.05]
-# kp: [0.02,0.02,0.02, 0.1,0.1,0.1]
-# kp: [0.06,0.06,0.03, 0.03,0.03,0.03]
-
-kd: [0.0,0.0,0.0, 0.0,0.0,0.0]
-
-# Particle/Segment ids of the tip points of the fabric 
-# to be placed into the grommets
-tip_particles: [0,39]
-
+kd: [0.0,0.0,0.0]
 ## ----------------------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------------------
 executions_log_directory: "~/catkin_ws_deformable/src/deformable_manipulations_composite_layup/logs/"
-reverse_after_execution: False # default: False # If True, the fabric is commanded in the reverse execution
 ## ----------------------------------------------------------------------------------------
-
-
-# Saving directory of Initial and Target states of the fabric for the path planning
-# The position and orientation of the each segment of the fabric is saved as a state
-# as a csv file in this directory
-state_saving_directory: "~/catkin_ws_deformable/src/deformable_manipulations_composite_layup/saved_states/"
-
-## INITIAL State File for the fabric
-## ----------------------------------------------------------------------------------------
-# The initial state file is used to load the initial poses of the fabric
-# If not specified, the initial poses are expected to manually set using the set_n_save_initial_state service
-initial_state_file: "" 
-# initial_state_file: "/home/burak/catkin_ws_deformable/src/deformable_manipulations_composite_layup/saved_states/scene_1_initial_states.csv"
-
-
-## TARGET State File for the fabric
-## ----------------------------------------------------------------------------------------
-# The target state file is used to load the target poses of the fabric
-# If not specified, the target poses are expected to manually set using the set_n_save_target_state service
-# target_state_file: "" 
-
-target_state_file: "/home/burak/catkin_ws_deformable/src/deformable_manipulations_composite_layup/saved_states/composite_layout_real_target_states.csv"
-
-## ----------------------------------------------------------------------------------------
-
 
 # Maximum velocity limits for each robot
 # Any velocity command exceeding these limits will be scaled down to these values
 max_linear_velocity: 0.2 # 0.05 # 0.2 # 0.1 # [m/s]
-max_angular_velocity: 0.3 # 0.075 # 0.3 # 0.15 # [rad/s]
 
 # Maximum acceleration limits for each robot
 max_linear_acceleration: 0.01 # 0.5  # [m/s^2]
-max_angular_acceleration: 0.2 # 0.5  # [rad/s^2]
-
-# Acceptable error for the target pose to consider the target is reached successfully
-# If the average error is less than this value, the target is not considered as reached
-acceptable_pos_err_avr_norm: 0.05 # [m] # note: d_obstacle_offset is added to this value ,NOPE it is not added
-acceptable_ori_err_avr_norm: 0.05 # [rad] (0.05 rad = 2.86 degrees)
-
-
-# Convergence time limit for the controller
-# If the error changes are less than the convergence thresholds in the last "convergence_wait_timeout" seconds,
-# the controller is considered to be converged or stuck.
-# If set to less than or equal to zero, the controller does not stop.
-convergence_wait_timeout: 3.0 # 10.0 # [s]
-# convergence_wait_timeout: 0.0 # [s] # (To disable the timeout, set to less than or equal to zero)
 
 k_low_pass_convergence: 0.9 # low pass filter coefficient for the ratio of minimum distance values of the previous values (Must be between [0,1])
 
-# Convergence threshold of the controller
-# If the average error changes less than this value in the last "convergence_wait_timeout" seconds,
-# the controller is considered to be converged or stuck
-convergence_threshold_pos: 1e-4 # 1e-7 [m]
-convergence_threshold_ori: 1e-2 # [rad] (1e-2 rad = 0.57 degrees)
-
 ## ----------------------------------------------------------------------------------------
-
-## ----------------------------------------------------------------------------------------
-# Path planning parameters
-path_tracking_control_enabled: True # default: True
-path_planning_tesseract_enabled: True # default: False # For Tesseract Path planning
-
-# Path tracking controller gains [x,y,z, Rx,Ry,Rz]
-# kp_path_tracking: [0.0,0.0,0.0, 0.0,0.0,0.0]
-# kp_path_tracking: [1.0,1.0,1.0, 1.5,1.5,1.5]
-# kp_path_tracking: [0.5,0.5,0.5, 0.75,0.75,0.75]
-# kp_path_tracking: [0.3,0.3,0.3, 0.45,0.45,0.45]
-# kp_path_tracking: [0.2,0.2,0.2, 0.3,0.3,0.3] 
-kp_path_tracking: [0.2,0.2,0.2, 0.3,0.3,0.3] 
-# kp_path_tracking: [0.1,0.1,0.1, 0.15,0.15,0.15] 
-# kp_path_tracking: [0.05,0.05,0.05, 0.075,0.075,0.075]
-
-kd_path_tracking: [0.0,0.0,0.0, 0.0,0.0,0.0]
-# kd_path_tracking: [1.0,1.0,1.0, 1.0,1.0,1.0]
-# kd_path_tracking: [1.0,1.0,1.0, 1.5,1.5,1.5]
-# kd_path_tracking: [0.5,0.5,0.5, 0.5,0.5,0.5]
-# kd_path_tracking: [0.25,0.25,0.25, 0.25,0.25,0.25]
-
-# Path tracking switch off parameters used in the transition function
-# A piecewise smooth transition function is used to switch off 
-# the path tracking controller smoothly to the nominal controller
-# when the robot is close to the end of path. 
-# See: https://www.desmos.com/calculator/lw1rirjtab
-d_path_tracking_start_switch_off_distance: 0.1 # 0.35 # the distance from the end of the path to start switching off the path tracking controller
-d_path_tracking_complete_switch_off_distance: 0.01 # the distance from the end of the path to completely switch off the path tracking controller
-
-# Feedforward velocity scale factors for the path tracking controller
-# These values are multiplied with the maximum velocity limits to scale down the velocity commands of the path tracking
-# They are in the range of [0,1]. If the value is 1.0, the maximum velocity limits are used as the feedforward velocity commands.
-path_tracking_feedforward_linear_velocity_scale_factor: 0.6 # 0.5
-path_tracking_feedforward_angular_velocity_scale_factor: 0.6 # 0.5
-## ----------------------------------------------------------------------------------------
-
-## ------------------------------------------------------------------------------------------------------
-## Parameters for the Experiments with pre-saved paths
-path_planning_pre_saved_paths_enabled: False # default: False # For Pre-saved Paths
-
-# experiments_range: The pre-saved experiments has a range, e.g 1-100, in the directory make sure the paths exist given this range
-# This can be specigied as list of experiment numbers as well, e.g. [1,2,3,4,5,6,7,8,9,10]
-# Note that:
-# - If only one value is given or more than two values are given, the range is assumed to be a list of experiments
-# - If two values are given, the range is assumed to be a range of experiments, inclusive of both the start and end values
-experiments_range: [1,20]
-# experiments_range: [20] 
-
-# Given the directory below we assume there exists sub folders with names "scene_<experiments_scene_id>"
-experiments_saved_paths_directory: "~/catkin_ws_deformable/src/deformable_manipulations_composite_layup/src/tesseract_planner/generated_plans_real_demo" 
-
-## ------------------------------------------------------------------------------------------------------
 
 ## -------------------------------------------------------
 ## Obstacle avoidance parameters
@@ -186,24 +78,24 @@ c3_alpha_obstacle: 1.0   # GOOD 1.0  # GOOD 0.05 # linear slope if h < 0 # Incre
 
 k_low_pass_ft: 0.9 # low pass filter coefficient for the ratio of ft values of the previous values (Must be between [0,1])
 
-wrench_max: [200.0, 200.0, 200.0, 15.0, 15.0, 15.0] # maximum wrench values for each axis [Fx,Fy,Fz, Tx,Ty,Tz] for the Control Barrier Functions (CBF)s. 
-# w_stress_offset: [60.0, 60.0, 60.0, 4.5, 4.5, 4.5] # offset values for the stress violation for each axis [Fx,Fy,Fz, Tx,Ty,Tz]
-w_stress_offset: [160.0, 160.0, 160.0, 11.5, 11.5, 11.5] # offset values for the stress violation for each axis [Fx,Fy,Fz, Tx,Ty,Tz]
+wrench_max: [200.0, 200.0, 200.0] # maximum wrench values for each axis [Fx,Fy,Fz] for the Control Barrier Functions (CBF)s. 
+# w_stress_offset: [60.0, 60.0, 60.0] # offset values for the stress violation for each axis [Fx,Fy,Fz]
+w_stress_offset: [160.0, 160.0, 160.0] # offset values for the stress violation for each axis [Fx,Fy,Fz]
 
-# alpha(h_ft) function robot stress coefficients for each axis [Fx,Fy,Fz, Tx,Ty,Tz]
+# alpha(h_ft) function robot stress coefficients for each axis [Fx,Fy,Fz]
 # see: https://www.desmos.com/calculator/hc6lc7nzkk for the function visualizations
-# c1_alpha_ft: [0.1, 0.1, 0.1, 0.01, 0.01, 0.01] # Decrease this to start reacting early  
-# c1_alpha_ft: [150, 150, 150, 20, 20, 20] # Decrease this to start reacting early TOO RELAXED  
-# c1_alpha_ft: [9, 9, 9, 0.6, 0.6, 0.6] # Decrease this to start reacting early  OLD
-c1_alpha_ft: [1.4, 1.4, 1.4, 0.08, 0.08, 0.08] # Decrease this to start reacting early  NEW
+# c1_alpha_ft: [0.1, 0.1, 0.1] # Decrease this to start reacting early  
+# c1_alpha_ft: [150, 150, 150] # Decrease this to start reacting early TOO RELAXED  
+# c1_alpha_ft: [9, 9, 9] # Decrease this to start reacting early  OLD
+c1_alpha_ft: [1.4, 1.4, 1.4] # Decrease this to start reacting early  NEW
 
-c2_alpha_ft: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0] # DO NOT CHANGE FROM 1.0. EXPERIMENTAL
+c2_alpha_ft: [1.0, 1.0, 1.0] # DO NOT CHANGE FROM 1.0. EXPERIMENTAL
 
-# c3_alpha_ft: [10.0, 10.0, 10.0, 30.0, 30.0, 30.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively # SEEMS TOO RELAXED FOR Fx,Fy,Fz
-# c3_alpha_ft: [90.0, 90.0, 90.0, 30.0, 30.0, 30.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively OLD
-c3_alpha_ft: [90.0, 90.0, 90.0, 60.0, 60.0, 60.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively NEW
-# c3_alpha_ft: [150.0, 150.0, 150.0, 30.0, 30.0, 30.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively
-# c3_alpha_ft: [200.0, 200.0, 200.0, 30.0, 30.0, 30.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively
-# c3_alpha_ft: [400.0, 400.0, 400.0, 30.0, 30.0, 30.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively
-# c3_alpha_ft: [70.0, 70.0, 70.0, 90.0, 90.0, 90.0] # SEEMS TOO AGRESSIVE FOR Tx,Ty,Tz
+# c3_alpha_ft: [10.0, 10.0, 10.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively # SEEMS TOO RELAXED FOR Fx,Fy,Fz
+# c3_alpha_ft: [90.0, 90.0, 90.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively OLD
+c3_alpha_ft: [90.0, 90.0, 90.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively NEW
+# c3_alpha_ft: [150.0, 150.0, 150.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively
+# c3_alpha_ft: [200.0, 200.0, 200.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively
+# c3_alpha_ft: [400.0, 400.0, 400.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively
+# c3_alpha_ft: [70.0, 70.0, 70.0] # SEEMS TOO AGRESSIVE FOR Tx,Ty,Tz
 ## -------------------------------------------------------
