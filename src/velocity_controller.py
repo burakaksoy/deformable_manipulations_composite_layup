@@ -299,8 +299,6 @@ class VelocityControllerNode:
         
         self.target_poses = {} # Each item will be a Pose() msg class
         self.target_relative_poses = {} # Each item will be a Pose() msg class
-        # for particle in self.custom_static_particles:
-        #     self.target_poses[particle] = self.calculate_pose_msg()
         
         self.reset_target_poses_wrt_leader_server = rospy.Service('~reset_target_poses_wrt_leader', Empty, self.reset_target_poses_wrt_leader)
         
@@ -490,25 +488,6 @@ class VelocityControllerNode:
         rospy.loginfo("Stress avoidance enabled state set to {}".format(request.data))
         return SetBoolResponse(True, 'Successfully set stress avoidance enabled state to {}'.format(request.data))
         
-    def calculate_pose_msg(self, pose_basic):
-        # pose_basic: Holds the target pose as a list formatted as [[x,y,z],[Rx,Ry,Rz(euler angles in degrees)]]
-        # This function converts it to a Pose msg
-
-        # Extract position and orientation from pose_basic
-        position_data, orientation_data = pose_basic
-
-        # Convert orientation from Euler angles (degrees) to radians
-        orientation_radians = np.deg2rad(orientation_data)
-
-        # Convert orientation from Euler angles to quaternion
-        quaternion_orientation = tf_trans.quaternion_from_euler(*orientation_radians)
-
-        # Prepare the pose msg
-        pose_msg = Pose()
-        pose_msg.position = Point(*position_data)
-        pose_msg.orientation = Quaternion(*quaternion_orientation)
-        return pose_msg
-
     def state_array_callback(self, states_msg):
         if self.initialized:
             self.current_full_state = states_msg
@@ -1166,7 +1145,6 @@ class VelocityControllerNode:
                 # ----------------------------------------------------------------------------------------------------  
             
 
-
     def odom_pub_timer_callback(self,event):
         """
         Integrates the self.control_outputs with time and publishes the resulting poses as Odometry messages.
@@ -1423,25 +1401,6 @@ class VelocityControllerNode:
             alpha_h = float('inf')
         
         return alpha_h
-    
-    # def alpha_collision_avoidance(self,h):
-    #     """
-    #     Calculates the value of extended_class_K function \alpha(h) for COLLISION AVOIDANCE
-    #     Piecewise Linear function is used when h is less than 0,
-    #     when h is greater or equal to 0 a nonlinear function is used.
-    #     See: https://www.desmos.com/calculator/owyqxbpbn3 for the function visualizations
-    #     """        
-    #     if (h < -self.d_obstacle_offset):
-    #         alpha_h = -self.c3_alpha_obstacle*self.d_obstacle_offset # Use this if you want to have a fixed value for alpha when h < -d_obstacle_offset
-    #         # alpha_h = self.c3_alpha_obstacle*h # Use this if you want to have a linear function for alpha when h < -d_obstacle_offset
-    #     elif (-self.d_obstacle_offset <= h < 0 ):
-    #         alpha_h = self.c3_alpha_obstacle*h
-    #     elif (0 <= h < (self.d_obstacle_freezone - self.d_obstacle_offset)):
-    #         alpha_h = np.tan((self.c1_alpha_obstacle*np.pi*h)/(2*(self.d_obstacle_freezone - self.d_obstacle_offset)))
-    #     else:
-    #         alpha_h = np.tan((self.c1_alpha_obstacle*np.pi)/2)
-        
-    #     return alpha_h
     
     def alpha_robot_stress(self, h):
         """
