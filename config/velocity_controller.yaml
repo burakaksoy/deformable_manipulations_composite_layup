@@ -1,7 +1,7 @@
 ## ----------------------------------------------------------------------------------------
 nominal_control_enabled: True # default:True
-obstacle_avoidance_enabled: True # default:True 
-stress_avoidance_enabled: True # default:True 
+obstacle_avoidance_enabled: False # default:True 
+stress_avoidance_enabled: False # default:True 
 
 # if the control output is invalid for this time, the controller stops.
 # If set to less than or equal to zero, the controller does not stop.
@@ -22,12 +22,19 @@ robot_command_topic_names:
   - "/oarbot_blue/cmd_vel_world"
 ## ----------------------------------------------------------------------------------------
 
+# The topic names to subscribe the odometry messages for the followed frames (e.g. human hands)
+# The first one is initialized as the leader, the rest are currently not being used.
+followed_odom_topic_names:
+  - "/odom_hand_1"
+  - "/odom_hand_2"
+
 ## ----------------------------------------------------------------------------------------
 ## Nominal Velocity controller parameters
 
 # Nominal Controller Gains [x,y,z]
+kp: [10.0,10.0,10.0]
 # kp: [1.0,1.0,1.0]
-kp: [0.5,0.5,0.5]
+# kp: [0.5,0.5,0.5]
 # kp: [0.06,0.06,0.03]
 # kp: [0.05,0.05,0.025]
 # kp: [0.03,0.03,0.03]
@@ -37,6 +44,11 @@ kd: [0.0,0.0,0.0]
 ## ----------------------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------------------
+## Logging parameters
+log_enabled: True # default: True # If True, the log files are created in the executions_log_directory including rosbag
+rosbag_log_enabled: False # default: True # If True, the rosbag files are created in the executions_log_directory
+compressed_rosbag: False # default: False # If True, the rosbag files are compressed. Warning: It may increase the CPU usage and miss some messages.
+
 executions_log_directory: "~/catkin_ws_deformable/src/deformable_manipulations_composite_layup/logs/"
 ## ----------------------------------------------------------------------------------------
 

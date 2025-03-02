@@ -84,11 +84,11 @@ simulation_rate: 333.333 #1000.0
 rendering_rate: 30.0 # Hz, frequency to publish the fabric vertices, edges and triangle mesh to RVIZ visualization markers
 
 fabric_state_topic_name: "fabric_state" # topic name to publish the fabric state with custom SegmentState Array msgs 
-fabric_state_pub_rate: 100.0 # Hz, frequency to publish fabric state as a feedback to some other node  
+fabric_state_pub_rate: 30.0 # Hz, frequency to publish fabric state as a feedback to some other node  
 
-wrench_pub_rate: 50.0 # Hz, frequency to publish the fabric forces at the attachment points 
+wrench_pub_rate: 30.0 # Hz, frequency to publish the fabric forces at the attachment points 
 rendering_rb_rate: 2 # Hz, frequency to publish the rigid body meshes to RVIZ visualization markers
-min_dist_to_rb_pub_rate: 100.0 # Hz, frequency to publish minimum distances to the rigid bodies 
+min_dist_to_rb_pub_rate: 30.0 # Hz, frequency to publish minimum distances to the rigid bodies 
 
 # Rigid body scene .json file, If empty, no rigid bodies exist in the simulator
 rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal.json 

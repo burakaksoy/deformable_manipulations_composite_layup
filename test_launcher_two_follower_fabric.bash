@@ -28,8 +28,8 @@ sleep 1s;
 gnome-terminal --tab --title="RQT_EZ_PUBLSHER" --command "bash -c \"source ~/.bashrc; rosrun rqt_ez_publisher rqt_ez_publisher; exec bash\"";
 sleep 1s;
 
-# gnome-terminal --tab --title="Controller" --command "bash -c \"source ~/.bashrc; roslaunch deformable_manipulations_composite_layup velocity_controller.launch; exec bash\"";
-# sleep 1s;
+gnome-terminal --tab --title="Controller" --command "bash -c \"source ~/.bashrc; roslaunch deformable_manipulations_composite_layup velocity_controller.launch; exec bash\"";
+sleep 1s;
 
 # To start the controller, call the service with command:
 # rosservice call /composite_layup_velocity_controller/set_enable_controller "data: true" 

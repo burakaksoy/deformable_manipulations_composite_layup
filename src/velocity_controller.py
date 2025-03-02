@@ -75,6 +75,10 @@ class VelocityControllerNode:
         self.set_obstacle_avoidance_server = rospy.Service('~set_obstacle_avoidance_enabled', SetBool, self.set_obstacle_avoidance_enabled)
         self.set_stress_avoidance_server = rospy.Service('~set_stress_avoidance_enabled', SetBool, self.set_stress_avoidance_enabled)
         
+        # Create parameters for logging
+        self.log_enabled = rospy.get_param("~log_enabled", True)
+        self.rosbag_log_enabled = rospy.get_param("~rosbag_log_enabled", True)
+        self.compressed_rosbag = rospy.get_param("~compressed_rosbag", False)
         # Get the saving directory for the executions log (rosbags, plans, etc.)
         self.executions_log_directory = rospy.get_param("~executions_log_directory", "")
 
@@ -105,6 +109,10 @@ class VelocityControllerNode:
         rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
         self.info_pub_stress_avoidance_performance_avr = rospy.Publisher("~info_stress_avoidance_performance_avr", Float32, queue_size=10)
         rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+        
+        self.info_target_pose_publisher = rospy.Publisher("~info_controller_marker_target_pose", Marker, queue_size=1)
+        rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+        
         
         self.real_robot_mode_enabled = rospy.get_param("~real_robot_mode_enabled", False) # Flag to enable/disable the real robot mode
         
@@ -187,11 +195,6 @@ class VelocityControllerNode:
         self.stress_avoidance_performance_sum = 0.0
         self.stress_avoidance_performance_ever_zero = False
         
-        self.target_poses = {} # Each item will be a Pose() msg class
-        self.target_relative_poses = {} # Each item will be a Pose() msg class
-        # for particle in self.custom_static_particles:
-        #     self.target_poses[particle] = self.calculate_pose_msg()
-
         ## ----------------------------------------------------------------------------------------
         ## SETUP FOR DEFORMABLE OBJECT STATE READINGS FROM SIMULATION PERTURBATIONS
 
@@ -242,11 +245,11 @@ class VelocityControllerNode:
             state_dz_topic_name    = self.deformable_object_state_topic_name + "_" + str(particle) + "_z" 
 
             # Create the subscribers (also takes the particle argument)
-            self.subs_state_dx[particle]    = rospy.Subscriber(state_dx_topic_name,    SegmentStateArray, self.state_array_dx_callback,    particle, queue_size=10)
+            self.subs_state_dx[particle]    = rospy.Subscriber(state_dx_topic_name, SegmentStateArray, self.state_array_dx_callback, particle, queue_size=10)
             rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            self.subs_state_dy[particle]    = rospy.Subscriber(state_dy_topic_name,    SegmentStateArray, self.state_array_dy_callback,    particle, queue_size=10)
+            self.subs_state_dy[particle]    = rospy.Subscriber(state_dy_topic_name, SegmentStateArray, self.state_array_dy_callback, particle, queue_size=10)
             rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            self.subs_state_dz[particle]    = rospy.Subscriber(state_dz_topic_name,    SegmentStateArray, self.state_array_dz_callback,    particle, queue_size=10)
+            self.subs_state_dz[particle]    = rospy.Subscriber(state_dz_topic_name, SegmentStateArray, self.state_array_dz_callback, particle, queue_size=10)
             rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
         
         ## ----------------------------------------------------------------------------------------
@@ -292,6 +295,39 @@ class VelocityControllerNode:
         self.experiments_manager = ExperimentsManager(self)
         
         ## ----------------------------------------------------------------------------------------
+        self.target_poses_wrt_leader = {}
+        
+        self.target_poses = {} # Each item will be a Pose() msg class
+        self.target_relative_poses = {} # Each item will be a Pose() msg class
+        # for particle in self.custom_static_particles:
+        #     self.target_poses[particle] = self.calculate_pose_msg()
+        
+        self.reset_target_poses_wrt_leader_server = rospy.Service('~reset_target_poses_wrt_leader', Empty, self.reset_target_poses_wrt_leader)
+        
+        # Read the followed odom topic names and create the subscribers to them
+        self.followed_odom_topic_names = rospy.get_param("~followed_odom_topic_names", [])
+        rospy.loginfo("followed_odom_topic_names: " + str(self.followed_odom_topic_names))
+        
+        self.followed_positions = {}
+        self.followed_orientations = {}
+        self.followed_twists = {}
+        
+        self.leader_odom_topic = ""
+        
+        self.followed_odom_subscribers = {}
+        for i, topic_name in enumerate(self.followed_odom_topic_names):
+            # Select the first topic as the leader
+            if i == 0:
+                self.leader_odom_topic = topic_name
+            
+            # Create the subscribers
+            self.followed_odom_subscribers[topic_name] = rospy.Subscriber(topic_name, Odometry, self.followed_odom_subscriber_callback, topic_name, queue_size=10)
+            rospy.sleep(0.1)
+            
+        
+        ## ----------------------------------------------------------------------------------------
+        
+        ## ----------------------------------------------------------------------------------------
         # Control output wait timeout
         self.valid_control_output_wait_timeout = rospy.get_param("~valid_control_output_wait_timeout", 5.0) # seconds
         if self.valid_control_output_wait_timeout <= 0.0:
@@ -304,11 +340,11 @@ class VelocityControllerNode:
         
         self.control_outputs = {} 
         for particle in self.custom_static_particles:
-            self.control_outputs[particle] = np.zeros(6) # initialization for the velocity command
+            self.control_outputs[particle] = np.zeros(3) # initialization for the velocity command
             
         self.control_outputs_last = {}
         for particle in self.custom_static_particles:
-            self.control_outputs_last[particle] = np.zeros(6)
+            self.control_outputs_last[particle] = np.zeros(3)
 
         # Start the control
         self.calculate_control_timer = rospy.Timer(rospy.Duration(1. / self.pub_rate_odom), self.calculate_control_outputs_timer_callback)
@@ -365,9 +401,10 @@ class VelocityControllerNode:
             self.pos_err_avr_norm = 0.0 # float('inf') # initialize average norm of the position errors
             self.pos_err_avr_norm_prev = 0.0 # float('inf') # initialize average norm of the previous position errors
             
-            if cause == "manual":
+            if cause == "manual" and self.log_enabled and self.rosbag_log_enabled:
                 self.experiments_manager.start_rosbag_recording_manual(self.controller_enabled_time_str, 
-                                                                        self.executions_log_directory)
+                                                                        self.executions_log_directory,
+                                                                        compress=self.compressed_rosbag)
             
             self.enabled = True
             rospy.loginfo("-------------- Controller is enabled --------------")
@@ -420,11 +457,13 @@ class VelocityControllerNode:
                 rospy.loginfo("\033[91m" + csv_line + "\033[0m")
                 # rospy.loginfo(csv_line)
             # ----------------------------------------------------------------------------------------
-            # Save the execution results to a csv file
-            self.experiments_manager.stop_rosbag_recording()
+            if self.log_enabled:
+                if self.rosbag_log_enabled:    
+                    # Save the execution results to a csv file
+                    self.experiments_manager.stop_rosbag_recording()
             
-            # Save results to csv file
-            self.experiments_manager.save_experiment_results_manual(execution_results, self.controller_enabled_time_str, self.executions_log_directory)
+                # Save results to csv file
+                self.experiments_manager.save_experiment_results_manual(execution_results, self.controller_enabled_time_str, self.executions_log_directory)
 
         # Publish the status message
         self.info_pub_controller_status.publish(status_msg)
@@ -536,26 +575,53 @@ class VelocityControllerNode:
             else:
                 return False
     
-    def calculate_error_tip(self):
-        err = np.zeros(3*len(self.tip_particles))
-
+    def calculate_target_poses(self):
+        if self.leader_odom_topic in self.followed_positions:
+            
+            leader_position = self.followed_positions[self.leader_odom_topic]
+            # leader_orientation = self.followed_orientations[self.leader_odom_topic]
+        
+            for particle in self.custom_static_particles:
+                if particle in self.target_poses_wrt_leader:
+                    relative_position = self.target_poses_wrt_leader[particle].position
+                
+                    self.target_poses[particle] = Pose()
+                    self.target_poses[particle].position.x = relative_position.x + leader_position.x
+                    self.target_poses[particle].position.y = relative_position.y + leader_position.y
+                    self.target_poses[particle].position.z = relative_position.z + leader_position.z    
+                    
+                    # self.publish_arrow_marker(leader_position, self.target_poses[particle])
+                else:
+                    rospy.logwarn("Particle: " + str(particle) + " target pose wrt leader is not set yet. Trying to set it.")
+                    self.reset_target_poses_wrt_leader(None)
+        else:
+            rospy.logwarn("Leader position is not available yet.")
+    
+    def calculate_pose_errors(self):
+        err = np.zeros(3*len(self.custom_static_particles))
         avr_norm_pos_err = 0.0
+        
+        self.calculate_target_poses() # Updates self.target_poses
 
-        for idx_tip, tip in enumerate(self.tip_particles):
+        for idx_particle, particle in enumerate(self.custom_static_particles):
             # Do not proceed until the initial values have been set
-            if not (tip in self.particle_positions):
-                rospy.logwarn("Tip particle: " + str(tip) + " state is not obtained yet.")
+            if not (particle in self.particle_positions):
+                rospy.logwarn("particle: " + str(particle) + " state is not obtained yet.")
+                continue
+            
+            if not (particle in self.target_poses):
+                rospy.logwarn("particle: " + str(particle) + " target pose is not set yet.")
                 continue
 
             current_pose = Pose()
-            current_pose.position = self.particle_positions[tip]
-            current_pose.orientation = self.particle_orientations[tip]
+            current_pose.position = self.particle_positions[particle]
+            # current_pose.orientation = self.particle_orientations[particle]
 
-            target_pose = self.target_poses[tip]
+            target_pose = self.target_poses[particle]
 
-            err[(3*idx_tip) : (3*(idx_tip+1))] = self.calculate_pose_target_error(current_pose,target_pose)
+            err[(3*idx_particle) : (3*(idx_particle+1))] = self.calculate_pose_target_error(current_pose,target_pose)
 
-            avr_norm_pos_err += np.linalg.norm(err[(3*idx_tip) : (3*(idx_tip+1))][0:3])/len(self.tip_particles)
+            avr_norm_pos_err += np.linalg.norm(err[(3*idx_particle) : (3*(idx_particle+1))][0:3])/len(self.custom_static_particles)
 
         return err, avr_norm_pos_err
     
@@ -774,11 +840,11 @@ class VelocityControllerNode:
 
         # Calculate the stress avoidance constraints for each custom static particle
         for idx_particle, particle in enumerate(self.custom_static_particles):
-            h_ft[3*idx_particle:3*(idx_particle+1)] = (self.wrench_max - self.w_stress_offset)**2 - (self.particle_wrenches[particle])**2 # h_ft = (wrench_max - wrench_offset)^2 - (wrench)^2 (NEW)
-            h_ft_normalized[3*idx_particle:3*(idx_particle+1)] = (self.wrench_max - np.abs(self.particle_wrenches[particle]))/self.wrench_max
+            h_ft[3*idx_particle:3*(idx_particle+1)] = (self.wrench_max - self.w_stress_offset)**2 - (self.particle_wrenches[particle][:3])**2 # h_ft = (wrench_max - wrench_offset)^2 - (wrench)^2 (NEW)
+            h_ft_normalized[3*idx_particle:3*(idx_particle+1)] = (self.wrench_max - np.abs(self.particle_wrenches[particle][:3]))/self.wrench_max
             alpha_h_ft[3*idx_particle:3*(idx_particle+1)] = self.alpha_robot_stress(h_ft[3*idx_particle:3*(idx_particle+1)])
-            sign_ft[3*idx_particle:3*(idx_particle+1)] = np.sign(self.particle_wrenches[particle])
-            ft[3*idx_particle:3*(idx_particle+1)] = self.particle_wrenches[particle]
+            sign_ft[3*idx_particle:3*(idx_particle+1)] = np.sign(self.particle_wrenches[particle][:3])
+            ft[3*idx_particle:3*(idx_particle+1)] = self.particle_wrenches[particle][:3]
 
         # Calculate stress avoidance performance monitoring values
         stress_avoidance_performance = self.calculate_and_publish_stress_avoidance_performance(h_ft_normalized)
@@ -854,7 +920,7 @@ class VelocityControllerNode:
         
         # # Assuming control_outputs_last is a dictionary or structure where velocities are stored
         # # Example structure for control_outputs_last:
-        # # self.control_outputs_last[particle] = np.array([v_x, v_y, v_z, w_x, w_y, w_z])
+        # # self.control_outputs_last[particle] = np.array([v_x, v_y, v_z])
 
         # for i, particle in enumerate(self.custom_static_particles):            
         #     lin_indices = np.arange(3*i, 3*i+3)  # Linear velocity indices
@@ -1015,15 +1081,14 @@ class VelocityControllerNode:
             self.control_outputs[particle] = control_output[3*idx_particle:3*(idx_particle+1)]
             # print("Particle " + str(particle) + " u: " + str(self.control_outputs[particle]))
     
-    def calculate_nominal_control_output(self, err_tip):
+    def calculate_nominal_control_output(self, err_particles):
         # Initiate the nominal control output to zero
         control_output = np.zeros(3*len(self.custom_static_particles))
 
         # Calculate the nominal control outputs
         if self.nominal_control_enabled:
-
             # Calculate the nominal control output
-            control_output = err_tip # (6,)
+            control_output = err_particles # (6,)
             # Apply the proportinal gains
             for idx_particle, particle in enumerate(self.custom_static_particles):
                 # Get nominal control output of that particle
@@ -1043,40 +1108,46 @@ class VelocityControllerNode:
                 self.controller_itr += 1
                 
                 # ----------------------------------------------------------------------------------------------------
-                ## Calculate the tip errors and update the error norms
+                ## Calculate the controlled particle pose errors and update the error norms
                 
                 # Update the previous error norms
                 self.pos_err_avr_norm_prev = self.pos_err_avr_norm
                 
-                # Calculate the current tip errors
-                (err_tip, pos_err_avr_norm) = self.calculate_error_tip() # (6,), scalar, scalar
+                # Calculate the current particle errors
+                (err_particles, pos_err_avr_norm) = self.calculate_pose_errors() # (6,), scalar, scalar
                 
-                # pretty_print_array(err_tip)
+                # pretty_print_array(err_particles)
+                # print("err_particles: " + str(err_particles))
                 # print("---------------------------")
                 
                 # Apply low-pass filter to the error norms
                 self.pos_err_avr_norm = self.k_low_pass_convergence*self.pos_err_avr_norm_prev + (1-self.k_low_pass_convergence)*pos_err_avr_norm
-    
                 
                 # publish error norms for information
                 self.info_pub_target_pos_error_avr_norm.publish(Float32(data=pos_err_avr_norm))
                 # ----------------------------------------------------------------------------------------------------
                 
                 # Calculate nominal control output
-                control_output = self.calculate_nominal_control_output(err_tip) # (6,)
+                control_output = self.calculate_nominal_control_output(err_particles) # (6,)
                         
+                # print("control_output: " + str(control_output))
+                # print("---------------------------")
+                
                 # ----------------------------------------------------------------------------------------------------  
                 # Proceed with the safe control output calculations
                 
                 # init_t = time.time()                
                 
                 # Calculate safe control output with obstacle avoidance        
-                control_output = self.calculate_safe_control_output(control_output) # safe # (12,)
+                # control_output = self.calculate_safe_control_output(control_output) # safe # (6,)
                 # rospy.logwarn("QP solver calculation time: " + str(1000*(time.time() - init_t)) + " ms.")
                 
                 if control_output is not None: # Successfully calculated the safe control output
                     self.update_last_control_output_is_valid_time()
                     self.assign_control_outputs(control_output)
+                    
+                    # print("self.control_outputs: " + str(self.control_outputs))
+                    # print("---------------------------")
                     return
                 
                 else: # if control output is None (ie. QP solver error)
@@ -1146,7 +1217,6 @@ class VelocityControllerNode:
 
                         # Save the applied control output as the last control output
                         self.control_outputs_last[particle][:3] = control_outputs_linear
-                        self.control_outputs_last[particle][3:6] = 0.0 # No angular velocity
 
                         # Publish
                         if not self.real_robot_mode_enabled:
@@ -1154,7 +1224,7 @@ class VelocityControllerNode:
                         else:
                             self.twist_publishers[particle].publish(odom.twist.twist)
                     else:
-                        self.control_outputs[particle] = np.zeros(6)
+                        self.control_outputs[particle] = np.zeros(3)
 
     def odom_publishers_publish_zero_velocities(self):
         """
@@ -1164,7 +1234,7 @@ class VelocityControllerNode:
         """
         for particle in self.custom_static_particles:
             # Set the control outputs to zero
-            self.control_outputs[particle] = np.zeros(6)
+            self.control_outputs[particle] = np.zeros(3)
 
             # Prepare Odometry message
             odom = Odometry()
@@ -1229,116 +1299,6 @@ class VelocityControllerNode:
         # Format the datetime object into a string similar to rosbag filenames
         timestamp = now.strftime("%Y-%m-%d-%H-%M-%S")
         return timestamp
-
-    def multiply_quaternions(self, q1, q2):
-        """
-        Multiply two quaternions.
-        """
-        w0, x0, y0, z0 = q1.w, q1.x, q1.y, q1.z
-        w1, x1, y1, z1 = q2.w, q2.x, q2.y, q2.z
-
-        w = w0*w1 - x0*x1 - y0*y1 - z0*z1
-        x = w0*x1 + x0*w1 + y0*z1 - z0*y1
-        y = w0*y1 - x0*z1 + y0*w1 + z0*x1
-        z = w0*z1 + x0*y1 - y0*x1 + z0*w1
-
-        return Quaternion(x, y, z, w)
-
-    def inverse_quaternion(self, q):
-        """
-        Calculate the inverse of a quaternion.
-        """
-        w, x, y, z = q.w, q.x, q.y, q.z
-        norm = w**2 + x**2 + y**2 + z**2
-
-        return Quaternion(-x/norm, -y/norm, -z/norm, w/norm)
-    
-    def quaternion_to_matrix(self, quat):
-        """
-        Return 3x3 rotation matrix from quaternion geometry msg.
-        """
-        # Extract the quaternion components
-        q = np.array([quat.x, quat.y, quat.z, quat.w], dtype=np.float64, copy=True)
-
-        n = np.dot(q, q)
-        if n < np.finfo(float).eps:
-            return np.identity(3)
-        
-        q *= np.sqrt(2.0 / n)
-        q = np.outer(q, q)
-
-        return np.array((
-            (1.0-q[1, 1]-q[2, 2],     q[0, 1]-q[2, 3],     q[0, 2]+q[1, 3]),
-            (    q[0, 1]+q[2, 3], 1.0-q[0, 0]-q[2, 2],     q[1, 2]-q[0, 3]),
-            (    q[0, 2]-q[1, 3],     q[1, 2]+q[0, 3], 1.0-q[0, 0]-q[1, 1])
-            ), dtype=np.float64)
-    
-    def hat(self,k):
-        """
-        Returns a 3 x 3 cross product matrix for a 3 x 1 vector
-        
-                [  0 -k3  k2]
-        khat =  [ k3   0 -k1]
-                [-k2  k1   0]
-        
-        :type    k: numpy.array
-        :param   k: 3 x 1 vector
-        :rtype:  numpy.array
-        :return: the 3 x 3 cross product matrix    
-        """
-        
-        khat=np.zeros((3,3))
-        khat[0,1]=-k[2]
-        khat[0,2]=k[1]
-        khat[1,0]=k[2]
-        khat[1,2]=-k[0]
-        khat[2,0]=-k[1]
-        khat[2,1]=k[0]    
-        return khat
-    
-    def quaternion_to_rotation_vec(self, quaternion):
-        """
-        Converts a quaternion to axis-angle representation.
-        Minimal representation of the orientation error. (3,) vector.
-        Arguments:
-            quaternion: The quaternion to convert as a numpy array in the form [x, y, z, w].
-        Returns:
-            rotation_vector: Minimal axis-angle representation of the orientation error. (3,) vector.
-            Norm if the axis_angle is the angle of rotation.
-        """
-        angle = 2 * np.arccos(quaternion[3])
-        
-        # Wrap the angle to [-pi, pi]
-        angle = np.arctan2(np.sin(angle), np.cos(angle))
-
-        # Handling small angles with an approximation
-        small_angle_threshold = 1e-6
-        if np.abs(angle) < small_angle_threshold:
-            # Use small angle approximation
-            rotation_vector = np.array([0.,0.,0.])
-            
-            # # Also calculate the representation Jacobian inverse
-            # J_inv = np.eye((3,3))
-        else:
-            # Regular calculation for larger angles
-            axis = quaternion[:3] / np.sin(angle/2.0)
-            # Normalize the axis
-            axis = axis / np.linalg.norm(axis)
-            rotation_vector = angle * axis 
-            
-            # # Also calculate the representation Jacobian inverse
-            # k_hat = self.hat(axis)
-            # cot = 1.0 / np.tan(angle/2.0)
-            # J = -angle/2.0 * (k_hat + cot*(k_hat @ k_hat)) + np.outer(axis, axis)
-            # J_inv = np.linalg.inv(J)
-            
-        return rotation_vector # , J_inv
-
-    def normalize_quaternion(self, quaternion):
-        norm = np.linalg.norm(quaternion)
-        if norm == 0:
-            raise ValueError("Cannot normalize a quaternion with zero norm.")
-        return quaternion / norm
 
     def scale_down_vector(self, u, max_u):
         norm_u = np.linalg.norm(u)
@@ -1517,6 +1477,64 @@ class VelocityControllerNode:
 
         return alpha_h
     
+    ## ----------------------------------------------------------------------------------------
+    def followed_odom_subscriber_callback(self, odom ,topic_name):
+        if self.initialized:
+            self.followed_positions[topic_name] = odom.pose.pose.position
+            self.followed_orientations[topic_name] = odom.pose.pose.orientation
+            self.followed_twists[topic_name] = odom.twist.twist
+        
+    def publish_arrow_marker(self, leader_position, target_pose):
+        # Create a marker for the arrow
+        marker = Marker()
+        marker.header.frame_id = "map"
+        marker.header.stamp = rospy.Time.now()
+        marker.ns = "target_arrow"
+        marker.id = 0
+        marker.type = Marker.ARROW
+        marker.action = Marker.ADD
+        
+        # Set the scale of the arrow
+        marker.scale.x = 0.015  # Shaft diameter
+        marker.scale.y = 0.05  # Head diameter
+        marker.scale.z = 0.3  # Head length
+        
+        # Set the color
+        marker.color.a = 0.3
+        marker.color.r = 1.0
+        marker.color.g = 0.0
+        marker.color.b = 0.0
+        
+        # Set the pose (position and orientation) for the marker
+        marker.pose.orientation.w = 1.0  # Orientation (quaternion)
+        
+        # Set the start and end points of the arrow
+        marker.points = []
+        start_point = leader_position  # Should be a Point message
+        end_point = target_pose.position  # Assuming target_pose is a Pose message
+        marker.points.append(start_point)
+        marker.points.append(end_point)
+        
+        # Publish the marker
+        self.info_target_pose_publisher.publish(marker)
+        
+    def reset_target_poses_wrt_leader(self, request):
+        if self.leader_odom_topic in self.followed_positions:
+            leader_position = self.followed_positions[self.leader_odom_topic]
+            # leader_orientation = self.followed_orientations[self.leader_odom_topic]
+        
+            for particle in self.custom_static_particles:
+                particle_position = self.particle_positions[particle]
+                # particle_orientation = self.particle_orientations[particle]
+                
+                self.target_poses_wrt_leader[particle] = Pose()
+                self.target_poses_wrt_leader[particle].position.x = particle_position.x - leader_position.x
+                self.target_poses_wrt_leader[particle].position.y = particle_position.y - leader_position.y
+                self.target_poses_wrt_leader[particle].position.z = particle_position.z - leader_position.z
+        else:
+            rospy.logwarn("Leader position is not available yet.")
+                
+        return EmptyResponse()
     ## ----------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
