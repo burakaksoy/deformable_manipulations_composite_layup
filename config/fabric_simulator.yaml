@@ -14,7 +14,7 @@ fabric_mesh_path: "" # .obj file, If empty, a rectangular fabric will be generat
 # If fabric_mesh_path is not empty string (i.e., "") the following parameters are not used.
 fabric_x: 1.5 # 1.5 # fabric x size in meters
 fabric_y: 1.0 # 1.0 # fabric y size in meters
-fabric_resolution: 15 # particle resolution per meter 
+fabric_resolution: 7 # particle resolution per meter 
 
 fabric_density: 1.0 # fabric mass per meter square (kg/m^2)
 
@@ -39,7 +39,8 @@ global_damp_coeff_v: 7.1e-1 # 2.1e-4; // 0.9e-3
 
 # Fabric Initial Transformations
 # initial_height: 0.0 # initial fabric height from ground (m) (Deprecated, use fabric_translation instead)
-fabric_translation: [1.9, 2.86, 1.0] # DEFAULT: [0, 0, 1.7] 
+fabric_translation: [1.9, 1.2, 1.0] # DEFAULT: [0, 0, 1.7] 
+# fabric_translation: [1.9, 2.86, 1.0] # On top of the mandrel
 fabric_rotationAxis: [0, 0, 1] # DEFAULT: [0, 1, 0] 
 fabric_rotationAngle: -1.570796327 # DEFAULT: 0.0 # 1.4 # Radians 
 fabric_scale: [1, 1, 1] # DEFAULT: [1, 1, 1] 
@@ -56,9 +57,14 @@ num_hang_corners: 4 # num of corners to hang fabric from (options: 0,1,2,3,4)
 # custom_static_particles: [0,30] # specify the particle ids to set as static
 # custom_static_particles: [930,960] # specify the particle ids to set as static
 
+##  Fabric Corners for 1.5x1.0-7 resolution mesh 
+# custom_static_particles: [  0,7,80,87] # specify the particle ids to set as static
+custom_static_particles: [0,7] # specify the particle ids to set as static
+# custom_static_particles: [80,87] # specify the particle ids to set as static
+
 ##  Fabric Corners for 1.5x1.0-15 resolution mesh 
 # custom_static_particles: [  0,15,352,367] # specify the particle ids to set as static
-custom_static_particles: [0,15] # specify the particle ids to set as static
+# custom_static_particles: [0,15] # specify the particle ids to set as static
 # custom_static_particles: [352,367] # specify the particle ids to set as static
 
 max_sticking_force: [100.0, 100.0, 10.0] # N, If the force is greater than this value, the sticked particle will be detached, default: [100.0, 100.0, 100.0]
@@ -91,7 +97,8 @@ rendering_rb_rate: 2 # Hz, frequency to publish the rigid body meshes to RVIZ vi
 min_dist_to_rb_pub_rate: 30.0 # Hz, frequency to publish minimum distances to the rigid bodies 
 
 # Rigid body scene .json file, If empty, no rigid bodies exist in the simulator
-rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal.json 
+# rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal.json 
+rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal-no-ceiling.json 
 
 is_dependant_simulator: false # (default: false) if true, the simulator subscribes to a topic to get the particle dynamicity change updates to synchronize with the main simulator, otherwise the simulator publishes the particle dynamicity change updates to a topic for other simulators to synchronize. The changes are transferred via a custom synchronization topic.
 
