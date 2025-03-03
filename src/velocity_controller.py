@@ -64,6 +64,7 @@ class VelocityControllerNode:
         rospy.logwarn("VelocityControllerNode: Initializing, Please wait...")
         
         self.enabled = False  # Flag to enable/disable controller
+        self.paused = False  # Flag to pause/resume controller
 
         # To Store the time when the controller is enabled/disabled
         self.controller_enabled_time = 0.0
@@ -76,6 +77,8 @@ class VelocityControllerNode:
         self.obstacle_avoidance_enabled = rospy.get_param("~obstacle_avoidance_enabled", True)
         self.stress_avoidance_enabled = rospy.get_param("~stress_avoidance_enabled", True)
 
+        # Create the service server for pause/resume the controller
+        self.set_pause_controller_server = rospy.Service('~set_pause_controller', SetBool, self.set_pause_controller)
         # Create the service server for enable/disable the controller
         self.set_enable_controller_server = rospy.Service('~set_enable_controller', SetBool, self.set_enable_controller)
 
@@ -391,7 +394,10 @@ class VelocityControllerNode:
 
 
 
-
+    def set_pause_controller(self, request):
+        self.paused = request.data
+        rospy.loginfo("Pause state set to {}".format(request.data))
+        return SetBoolResponse(True, 'Successfully set pause state to {}'.format(request.data))
     
     def set_enable_controller(self, request):
         self.controller_enabler(enable=request.data, cause="manual")
@@ -1191,7 +1197,12 @@ class VelocityControllerNode:
         """
         if self.initialized:
             # Only publish if enabled
-            if self.enabled:
+            if self.enabled:                
+                if self.paused:                    
+                    # Publish zero velocities for all particles
+                    self.odom_publishers_publish_zero_velocities()                    
+                    return
+                
                 # TODO: This for loop can be parallelized for better performance
                 for particle in self.custom_static_particles:
                     # Do not proceed until the initial values have been set
