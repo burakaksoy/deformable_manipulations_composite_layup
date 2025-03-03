@@ -624,7 +624,7 @@ Visualization Manager:
           Line Alpha: 0.6000000238418579
           Line Color: 255; 0; 255
           Line Width: 0.009999999776482582
-          Max Points: 100
+          Max Points: 1
           Min Distance: 0.0010000000474974513
           Name: OdomTrail-Hand1-Right
           Queue Size: 10
@@ -649,7 +649,7 @@ Visualization Manager:
           Line Alpha: 0.6000000238418579
           Line Color: 128; 0; 128
           Line Width: 0.009999999776482582
-          Max Points: 100
+          Max Points: 1
           Min Distance: 0.0010000000474974513
           Name: OdomTrail-Hand2-Left
           Queue Size: 10
@@ -707,7 +707,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.671741008758545
+      Distance: 3.768474817276001
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -715,17 +715,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.2231606245040894
-        Y: 2.0217063426971436
-        Z: 0.08893400430679321
+        X: 1.2248976230621338
+        Y: 2.1191651821136475
+        Z: 0.21068312227725983
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7254011631011963
+      Pitch: 0.7354013919830322
       Target Frame: <Fixed Frame>
-      Yaw: 0.8662861585617065
+      Yaw: 0.6812865734100342
     Saved:
       - Class: rviz/Orbit
         Distance: 4.851423263549805
@@ -836,4 +836,4 @@ Window Geometry:
     collapsed: true
   Width: 1884
   X: 1884
-  Y: 1096
+  Y: 1059
