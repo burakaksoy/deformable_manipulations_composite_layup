@@ -1,13 +1,12 @@
 ## ----------------------------------------------------------------------------------------
 nominal_control_enabled: True # default:True
-obstacle_avoidance_enabled: False # default:True 
-stress_avoidance_enabled: False # default:True 
+obstacle_avoidance_enabled: True # default:True 
+stress_avoidance_enabled: True # default:True 
 
 # if the control output is invalid for this time, the controller stops.
 # If set to less than or equal to zero, the controller does not stop.
 # valid_control_output_wait_timeout: 5.0 # (seconds) 
 valid_control_output_wait_timeout: 0.0 # (seconds) (To disable the timeout, set to less than or equal to zero)
-
 ## ----------------------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------------------

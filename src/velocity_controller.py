@@ -12,7 +12,7 @@ import traceback
 
 from geometry_msgs.msg import Twist, Point, PointStamped, Quaternion, Pose, PoseStamped, Wrench, Vector3
 from nav_msgs.msg import Odometry, Path
-from visualization_msgs.msg import Marker
+from visualization_msgs.msg import Marker, MarkerArray
 from std_msgs.msg import Float32, Float32MultiArray
 
 from fabric_simulator.msg import SegmentStateArray
@@ -110,7 +110,7 @@ class VelocityControllerNode:
         self.info_pub_stress_avoidance_performance_avr = rospy.Publisher("~info_stress_avoidance_performance_avr", Float32, queue_size=10)
         rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
         
-        self.info_target_pose_publisher = rospy.Publisher("~info_controller_marker_target_pose", Marker, queue_size=1)
+        self.info_target_pose_publisher = rospy.Publisher("~info_controller_marker_target_pose", MarkerArray, queue_size=1)
         rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
         
         
@@ -558,21 +558,29 @@ class VelocityControllerNode:
         if self.leader_odom_topic in self.followed_positions:
             
             leader_position = self.followed_positions[self.leader_odom_topic]
-            # leader_orientation = self.followed_orientations[self.leader_odom_topic]
-        
-            for particle in self.custom_static_particles:
-                if particle in self.target_poses_wrt_leader:
-                    relative_position = self.target_poses_wrt_leader[particle].position
-                
-                    self.target_poses[particle] = Pose()
-                    self.target_poses[particle].position.x = relative_position.x + leader_position.x
-                    self.target_poses[particle].position.y = relative_position.y + leader_position.y
-                    self.target_poses[particle].position.z = relative_position.z + leader_position.z    
-                    
-                    # self.publish_arrow_marker(leader_position, self.target_poses[particle])
-                else:
-                    rospy.logwarn("Particle: " + str(particle) + " target pose wrt leader is not set yet. Trying to set it.")
-                    self.reset_target_poses_wrt_leader(None)
+            
+            while True:  # Loop until all target poses are set
+                reset_occurred = False  # Flag to track if reset happens
+
+                for particle in self.custom_static_particles:
+                    if particle in self.target_poses_wrt_leader:
+                        relative_position = self.target_poses_wrt_leader[particle].position
+
+                        self.target_poses[particle] = Pose()
+                        self.target_poses[particle].position.x = relative_position.x + leader_position.x
+                        self.target_poses[particle].position.y = relative_position.y + leader_position.y
+                        self.target_poses[particle].position.z = relative_position.z + leader_position.z    
+                    else:
+                        rospy.logwarn("Particle: " + str(particle) + " target pose wrt leader is not set yet. Trying to set it.")
+                        self.reset_target_poses_wrt_leader(None)
+                        reset_occurred = True  # Mark that a reset happened
+                        break  # Exit the for-loop to restart
+
+                if not reset_occurred:
+                    break  # Exit the while-loop if no reset occurred
+
+            # After updating all target poses, publish the target poses as markers
+            self.publish_arrows_marker_array()
         else:
             rospy.logwarn("Leader position is not available yet.")
     
@@ -741,16 +749,16 @@ class VelocityControllerNode:
                 # btw. the current holding point wrench and the perturbated holding point wrench caused by the perturbation of custom_static_particle pose in each direction
 
                 # Note that the forces and torques are negated to calculate the wrenches needed to be applied by the robots.
-                current_wrench = self.particle_wrenches[particle1]
+                current_wrench = self.particle_wrenches[particle1][:3]
                 
                 # dx direction
-                perturbed_wrench = self.particle_wrenches_dx[particle][particle1]
+                perturbed_wrench = self.particle_wrenches_dx[particle][particle1][:3]
                 J[ (3*idx_particle1) : (3*(idx_particle1+1)) , 3*idx_particle+0 ] = (perturbed_wrench-current_wrench)/self.delta_x
                 # dy direction
-                perturbed_wrench = self.particle_wrenches_dy[particle][particle1]
+                perturbed_wrench = self.particle_wrenches_dy[particle][particle1][:3]
                 J[ (3*idx_particle1) : (3*(idx_particle1+1)) , 3*idx_particle+1 ] = (perturbed_wrench-current_wrench)/self.delta_y
                 # dz direction
-                perturbed_wrench = self.particle_wrenches_dz[particle][particle1]
+                perturbed_wrench = self.particle_wrenches_dz[particle][particle1][:3]
                 J[ (3*idx_particle1) : (3*(idx_particle1+1)) , 3*idx_particle+2 ] = (perturbed_wrench-current_wrench)/self.delta_z
 
         return J
@@ -952,7 +960,7 @@ class VelocityControllerNode:
         ## Note that y axis position is every 2nd element of each 3 element sets in the weight vector
         # weights[1::3] = 0.5 
         ## Note that z axis position is every 3rd element of each 3 element sets in the weight vector
-        # weights[2::3] = 0.1 
+        weights[2::3] = 0.1 
         # weights[2::3] = self.calculate_cost_weight_z_pos(stress_avoidance_performance, overall_min_distance-self.d_obstacle_offset)
         
         # Slow down the nominal control output when close to the obstacles and stress limits
@@ -1118,7 +1126,7 @@ class VelocityControllerNode:
                 # init_t = time.time()                
                 
                 # Calculate safe control output with obstacle avoidance        
-                # control_output = self.calculate_safe_control_output(control_output) # safe # (6,)
+                control_output = self.calculate_safe_control_output(control_output) # safe # (6,)
                 # rospy.logwarn("QP solver calculation time: " + str(1000*(time.time() - init_t)) + " ms.")
                 
                 if control_output is not None: # Successfully calculated the safe control output
@@ -1442,40 +1450,59 @@ class VelocityControllerNode:
             self.followed_positions[topic_name] = odom.pose.pose.position
             self.followed_orientations[topic_name] = odom.pose.pose.orientation
             self.followed_twists[topic_name] = odom.twist.twist
+                
+    def publish_arrows_marker_array(self):
+        marker_array = MarkerArray()
+        now = rospy.Time.now()
+
+        for i, (particle, target_pose) in enumerate(self.target_poses.items()):
+            # Create a marker for the arrow
+            marker = Marker()
+            marker.header.frame_id = "map"
+            marker.header.stamp = now
+            marker.ns = "target_arrows"
+            
+            # Use a unique ID for each particle so RViz knows they are different markers
+            marker.id = i
+            
+            marker.type = Marker.ARROW
+            marker.action = Marker.ADD
+            
+            # Set the scale of the arrow
+            marker.scale.x = 0.015  # Shaft diameter
+            marker.scale.y = 0.05   # Head diameter
+            marker.scale.z = 0.3    # Head length
+            
+            # Set the color (you can differentiate color if you want)
+            marker.color.a = 0.3
+            marker.color.r = 1.0
+            marker.color.g = 0.0
+            marker.color.b = 0.0
+            
+            # Pose not used in ARROW mode except for orientation,
+            # but we need to set orientation to a valid quaternion
+            marker.pose.orientation.w = 1.0
+
+            # Suppose you have a `leader_position` for each arrow.
+            # Here I'm assuming you store that in a structure or compute it on the fly.
+            leader_pos = self.followed_positions[self.leader_odom_topic]
+
+            start_point = Point()
+            start_point.x = leader_pos.x
+            start_point.y = leader_pos.y
+            start_point.z = leader_pos.z
+
+            end_point = Point()
+            end_point.x = target_pose.position.x
+            end_point.y = target_pose.position.y
+            end_point.z = target_pose.position.z
+
+            marker.points = [start_point, end_point]
+            
+            marker_array.markers.append(marker)
         
-    def publish_arrow_marker(self, leader_position, target_pose):
-        # Create a marker for the arrow
-        marker = Marker()
-        marker.header.frame_id = "map"
-        marker.header.stamp = rospy.Time.now()
-        marker.ns = "target_arrow"
-        marker.id = 0
-        marker.type = Marker.ARROW
-        marker.action = Marker.ADD
-        
-        # Set the scale of the arrow
-        marker.scale.x = 0.015  # Shaft diameter
-        marker.scale.y = 0.05  # Head diameter
-        marker.scale.z = 0.3  # Head length
-        
-        # Set the color
-        marker.color.a = 0.3
-        marker.color.r = 1.0
-        marker.color.g = 0.0
-        marker.color.b = 0.0
-        
-        # Set the pose (position and orientation) for the marker
-        marker.pose.orientation.w = 1.0  # Orientation (quaternion)
-        
-        # Set the start and end points of the arrow
-        marker.points = []
-        start_point = leader_position  # Should be a Point message
-        end_point = target_pose.position  # Assuming target_pose is a Pose message
-        marker.points.append(start_point)
-        marker.points.append(end_point)
-        
-        # Publish the marker
-        self.info_target_pose_publisher.publish(marker)
+        # Publish once for all markers
+        self.info_target_pose_publisher.publish(marker_array)
         
     def reset_target_poses_wrt_leader(self, request):
         if self.leader_odom_topic in self.followed_positions:
