@@ -29,6 +29,15 @@ import cvxpy as cp
 
 from experiments_manager import ExperimentsManager
 
+import threading
+
+def run_in_thread(callback):
+    def wrapper(*args, **kwargs):
+        thread = threading.Thread(target=callback, args=args, kwargs=kwargs)
+        thread.daemon = True
+        thread.start()
+    return wrapper
+
 # Set print options to reduce precision and increase line width
 np.set_printoptions(precision=2, linewidth=200)
 
@@ -209,8 +218,13 @@ class VelocityControllerNode:
 
         self.current_full_state = None # To store the current full state of the deformable object
         
+        experimental_run_subscribers_in_thread = False
+        
         # Subscriber for deformable object states to figure out the current particle positions
-        self.sub_state = rospy.Subscriber(self.deformable_object_state_topic_name, SegmentStateArray, self.state_array_callback, queue_size=10)
+        if experimental_run_subscribers_in_thread:
+            self.sub_state = rospy.Subscriber(self.deformable_object_state_topic_name, SegmentStateArray, run_in_thread(self.state_array_callback), queue_size=10)
+        else:
+            self.sub_state = rospy.Subscriber(self.deformable_object_state_topic_name, SegmentStateArray, self.state_array_callback, queue_size=10)
         rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
         
         # Subscribers to the particle states with perturbations      
@@ -245,12 +259,20 @@ class VelocityControllerNode:
             state_dz_topic_name    = self.deformable_object_state_topic_name + "_" + str(particle) + "_z" 
 
             # Create the subscribers (also takes the particle argument)
-            self.subs_state_dx[particle]    = rospy.Subscriber(state_dx_topic_name, SegmentStateArray, self.state_array_dx_callback, particle, queue_size=10)
-            rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            self.subs_state_dy[particle]    = rospy.Subscriber(state_dy_topic_name, SegmentStateArray, self.state_array_dy_callback, particle, queue_size=10)
-            rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            self.subs_state_dz[particle]    = rospy.Subscriber(state_dz_topic_name, SegmentStateArray, self.state_array_dz_callback, particle, queue_size=10)
-            rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+            if experimental_run_subscribers_in_thread:
+                self.subs_state_dx[particle] = rospy.Subscriber(state_dx_topic_name, SegmentStateArray, run_in_thread(self.state_array_dx_callback), particle, queue_size=10)
+                rospy.sleep(0.1)
+                self.subs_state_dy[particle] = rospy.Subscriber(state_dy_topic_name, SegmentStateArray, run_in_thread(self.state_array_dy_callback), particle, queue_size=10)
+                rospy.sleep(0.1)
+                self.subs_state_dz[particle] = rospy.Subscriber(state_dz_topic_name, SegmentStateArray, run_in_thread(self.state_array_dz_callback), particle, queue_size=10)
+                rospy.sleep(0.1)
+            else:
+                self.subs_state_dx[particle]    = rospy.Subscriber(state_dx_topic_name, SegmentStateArray, self.state_array_dx_callback, particle, queue_size=10)
+                rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+                self.subs_state_dy[particle]    = rospy.Subscriber(state_dy_topic_name, SegmentStateArray, self.state_array_dy_callback, particle, queue_size=10)
+                rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+                self.subs_state_dz[particle]    = rospy.Subscriber(state_dz_topic_name, SegmentStateArray, self.state_array_dz_callback, particle, queue_size=10)
+                rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
         
         ## ----------------------------------------------------------------------------------------
         ## SETUP FOR MINIMUM DISTANCE READINGS FROM SIMULATION PERTURBATIONS
@@ -258,7 +280,10 @@ class VelocityControllerNode:
         # this is also like prefix to the perturbed particles' new minimum distances
 
         # Subscriber to figure out the current deformable object minimum distances to the rigid bodies in the scene 
-        self.sub_min_distance = rospy.Subscriber(self.min_distance_topic_name, MinDistanceDataArray, self.min_distances_array_callback, queue_size=10)
+        if experimental_run_subscribers_in_thread:
+            self.sub_min_distance = rospy.Subscriber(self.min_distance_topic_name, MinDistanceDataArray, run_in_thread(self.min_distances_array_callback), queue_size=10)
+        else:
+            self.sub_min_distance = rospy.Subscriber(self.min_distance_topic_name, MinDistanceDataArray, self.min_distances_array_callback, queue_size=10)
         rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
 
         # Subscribers to the particle minimum distances with perturbations      
@@ -284,11 +309,17 @@ class VelocityControllerNode:
             min_distance_dz_topic_name    = self.min_distance_topic_name + "_" + str(particle) + "_z" 
         
             # Create the subscribers (also takes the particle argument)
-            self.subs_min_distance_dx[particle]    = rospy.Subscriber(min_distance_dx_topic_name,    MinDistanceDataArray, self.min_distance_array_dx_callback,    particle, queue_size=10)
+            # self.subs_min_distance_dx[particle]    = rospy.Subscriber(min_distance_dx_topic_name,    MinDistanceDataArray, self.min_distance_array_dx_callback,    particle, queue_size=10)
+            # rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+            # self.subs_min_distance_dy[particle]    = rospy.Subscriber(min_distance_dy_topic_name,    MinDistanceDataArray, self.min_distance_array_dy_callback,    particle, queue_size=10)
+            # rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+            # self.subs_min_distance_dz[particle]    = rospy.Subscriber(min_distance_dz_topic_name,    MinDistanceDataArray, self.min_distance_array_dz_callback,    particle, queue_size=10)
+            # rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+            self.subs_min_distance_dx[particle]    = rospy.Subscriber(min_distance_dx_topic_name, MinDistanceDataArray, run_in_thread(self.min_distance_array_dx_callback),    particle, queue_size=10)
             rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            self.subs_min_distance_dy[particle]    = rospy.Subscriber(min_distance_dy_topic_name,    MinDistanceDataArray, self.min_distance_array_dy_callback,    particle, queue_size=10)
+            self.subs_min_distance_dy[particle]    = rospy.Subscriber(min_distance_dy_topic_name, MinDistanceDataArray, run_in_thread(self.min_distance_array_dy_callback),    particle, queue_size=10)
             rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            self.subs_min_distance_dz[particle]    = rospy.Subscriber(min_distance_dz_topic_name,    MinDistanceDataArray, self.min_distance_array_dz_callback,    particle, queue_size=10)
+            self.subs_min_distance_dz[particle]    = rospy.Subscriber(min_distance_dz_topic_name, MinDistanceDataArray, run_in_thread(self.min_distance_array_dz_callback),    particle, queue_size=10)
             rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
         ## ----------------------------------------------------------------------------------------
         
@@ -319,10 +350,11 @@ class VelocityControllerNode:
                 self.leader_odom_topic = topic_name
             
             # Create the subscribers
-            self.followed_odom_subscribers[topic_name] = rospy.Subscriber(topic_name, Odometry, self.followed_odom_subscriber_callback, topic_name, queue_size=10)
+            if experimental_run_subscribers_in_thread:
+                self.followed_odom_subscribers[topic_name] = rospy.Subscriber(topic_name, Odometry, run_in_thread(self.followed_odom_subscriber_callback), topic_name, queue_size=10)
+            else:
+                self.followed_odom_subscribers[topic_name] = rospy.Subscriber(topic_name, Odometry, self.followed_odom_subscriber_callback, topic_name, queue_size=10)
             rospy.sleep(0.1)
-            
-        
         ## ----------------------------------------------------------------------------------------
         
         ## ----------------------------------------------------------------------------------------
