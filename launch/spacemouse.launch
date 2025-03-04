@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Add dual spacemouse bool argument -->
+    <arg name="dual_spacemouse" default="true"/>
+
+    <!-- Single spacemouse case -->
+    <group unless="$(arg dual_spacemouse)">
+        <!-- Include classic spacenav launch file -->
+        <include file="$(find spacenav_node)/launch/classic.launch"/>
+    </group>
+
+    <!-- Dual spacemouse case -->
+    <group if="$(arg dual_spacemouse)">
+        <!-- First SpaceMouse -->
+        <node name="spacenav1" pkg="spacenav_node" type="spacenav_node" output="screen">
+            <param name="zero_when_static" value="true"/>
+            <param name="static_count_threshold" value="30"/>
+
+            <remap from="/spacenav/twist" to="/spacenav/twist"/>
+        </node>
+
+        <!-- Second SpaceMouse -->
+        <group>
+            <machine name="burak-p1-20" address="192.168.1.200" env-loader="/home/burak/catkin_ws_deformable/src/deformable_manipulations_composite_layup/scripts/env_loader.sh" user="burak" password="1q2w3e"  default="true"/>
+            <node name="spacenav2" pkg="spacenav_node" type="spacenav_node" output="screen">        
+                <param name="zero_when_static" value="true"/>
+                <param name="static_count_threshold" value="30"/>
+
+                <remap from="/spacenav/twist" to="/spacenav2/twist"/>
+            </node>
+        </group>
+    </group>
+
+</launch>

@@ -45,7 +45,7 @@ kd: [0.0,0.0,0.0]
 ## ----------------------------------------------------------------------------------------
 ## Logging parameters
 log_enabled: True # default: True # If True, the log files are created in the executions_log_directory including rosbag
-rosbag_log_enabled: False # default: True # If True, the rosbag files are created in the executions_log_directory
+rosbag_log_enabled: True # default: True # If True, the rosbag files are created in the executions_log_directory
 compressed_rosbag: False # default: False # If True, the rosbag files are compressed. Warning: It may increase the CPU usage and miss some messages.
 
 executions_log_directory: "~/catkin_ws_deformable/src/deformable_manipulations_composite_layup/logs/"

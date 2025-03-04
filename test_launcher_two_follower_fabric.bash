@@ -18,15 +18,20 @@ gnome-terminal --tab --title="RVIZ" --command "bash -c \"source ~/.bashrc; rosru
 # gnome-terminal --tab --title="RVIZ" --command "bash -c \"source ~/.bashrc; rosrun rviz rviz -d ~/catkin_ws_deformable/src/deformable_manipulations_composite_layup/rviz/two_robot_composite_layup_real.rviz; exec bash\"";
 sleep 4s;
 
-gnome-terminal --tab --title="GUI" --command "bash -c \"source ~/.bashrc; rosrun fabric_simulator test_gui.py _mode:="composite_sheet_application_test"; exec bash\"";
+gnome-terminal --tab --title="GUI" --command "bash -c \"source ~/.bashrc; rosrun fabric_simulator test_gui.py _mode:="composite_sheet_application_test" _dual_spacenav_twist:=True; exec bash\"";
 sleep 1s;
 
-# To publish to "/space_nav/twist"
+# # To publish to "/space_nav/twist"
 # # If you have a space mouse, you can use the following command to start the spacenav node:
 # gnome-terminal --tab --title="Spacenav" --command "bash -c \"source ~/.bashrc; roslaunch spacenav_node classic.launch; exec bash\"";
-# Otherwise, you can use rqt_ez_publisher:
-gnome-terminal --tab --title="RQT_EZ_PUBLSHER" --command "bash -c \"source ~/.bashrc; rosrun rqt_ez_publisher rqt_ez_publisher; exec bash\"";
-sleep 1s;
+# # # Otherwise, you can use rqt_ez_publisher:
+# # gnome-terminal --tab --title="RQT_EZ_PUBLSHER" --command "bash -c \"source ~/.bashrc; rosrun rqt_ez_publisher rqt_ez_publisher; exec bash\"";
+
+# # Second space mouse as keyboard teleop
+# gnome-terminal --tab --title="Spacenav2" --command "bash -c \"source ~/.bashrc; rosrun deformable_manipulations_composite_layup teleop_twist_keyboard_linear.py; exec bash\"";
+# sleep 1s;
+# Or use the following command to start the spacenav nodes -one in the current computer and the other in the remote computer:
+gnome-terminal --tab --title="Spacenav" --command "bash -c \"source ~/.bashrc; roslaunch deformable_manipulations_composite_layup spacemouse.launch dual_spacemouse:=true; exec bash\"";
 
 gnome-terminal --tab --title="Controller" --command "bash -c \"source ~/.bashrc; roslaunch deformable_manipulations_composite_layup velocity_controller.launch; exec bash\"";
 sleep 1s;
