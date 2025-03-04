@@ -61,6 +61,10 @@ class ExperimentsManager(object):
         # All odom particles topics
         self.odom_topics = [f"/odom_particle_{i}" for i in self.velocity_controller_node.custom_static_particles]
         # e.g. ["/odom_particle_1", "/odom_particle_2"]
+        
+        # Add hand odom topics
+        self.odom_topics.extend(["/odom_hand_1", "/odom_hand_2"])
+        
         topics.extend(self.odom_topics)
         
         # Real robot topics
