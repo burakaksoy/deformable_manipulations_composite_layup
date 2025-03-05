@@ -219,15 +219,15 @@ class VelocityControllerNode:
         self.particle_twists = {}
         self.particle_wrenches = {}
 
-        self.current_full_state = None # To store the current full state of the deformable object
+        # self.current_full_state = None # To store the current full state of the deformable object
         
         experimental_run_subscribers_in_thread = False
         
         # Subscriber for deformable object states to figure out the current particle positions
         if experimental_run_subscribers_in_thread:
-            self.sub_state = rospy.Subscriber(self.deformable_object_state_topic_name, SegmentStateArray, run_in_thread(self.state_array_callback), queue_size=10)
+            self.sub_state = rospy.Subscriber(self.deformable_object_state_topic_name + "_minimal", SegmentStateArray, run_in_thread(self.state_array_callback), queue_size=10)
         else:
-            self.sub_state = rospy.Subscriber(self.deformable_object_state_topic_name, SegmentStateArray, self.state_array_callback, queue_size=10)
+            self.sub_state = rospy.Subscriber(self.deformable_object_state_topic_name + "_minimal", SegmentStateArray, self.state_array_callback, queue_size=10)
         rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
         
         # Subscribers to the particle states with perturbations      
@@ -257,9 +257,9 @@ class VelocityControllerNode:
         ## Create the subscribers to states with perturbations
         for particle in self.custom_static_particles:
             # Prepare the topic names of that particle
-            state_dx_topic_name    = self.deformable_object_state_topic_name + "_" + str(particle) + "_x" 
-            state_dy_topic_name    = self.deformable_object_state_topic_name + "_" + str(particle) + "_y" 
-            state_dz_topic_name    = self.deformable_object_state_topic_name + "_" + str(particle) + "_z" 
+            state_dx_topic_name    = self.deformable_object_state_topic_name + "_" + str(particle) + "_x" + "_minimal" 
+            state_dy_topic_name    = self.deformable_object_state_topic_name + "_" + str(particle) + "_y" + "_minimal" 
+            state_dz_topic_name    = self.deformable_object_state_topic_name + "_" + str(particle) + "_z" + "_minimal" 
 
             # Create the subscribers (also takes the particle argument)
             if experimental_run_subscribers_in_thread:
@@ -530,19 +530,44 @@ class VelocityControllerNode:
         
     def state_array_callback(self, states_msg):
         if self.initialized:
-            self.current_full_state = states_msg
+            # self.current_full_state = states_msg
             
-            for particle in self.custom_static_particles:
-                self.particle_positions[particle] = states_msg.states[particle].pose.position
-                self.particle_orientations[particle] = states_msg.states[particle].pose.orientation
-                self.particle_twists[particle] = states_msg.states[particle].twist
+            # for particle in self.custom_static_particles:
+            #     self.particle_positions[particle] = states_msg.states[particle].pose.position
+            #     self.particle_orientations[particle] = states_msg.states[particle].pose.orientation
+            #     self.particle_twists[particle] = states_msg.states[particle].twist
 
-                wrench_array = self.wrench_to_numpy(states_msg.states[particle].wrench)
-                if particle not in self.particle_wrenches:
-                    self.particle_wrenches[particle] = wrench_array
-                else:
-                    # Apply low-pass filter to the force and torque values
-                    self.particle_wrenches[particle] = self.k_low_pass_ft*self.particle_wrenches[particle] + (1 - self.k_low_pass_ft)*wrench_array
+            #     wrench_array = self.wrench_to_numpy(states_msg.states[particle].wrench)
+            #     if particle not in self.particle_wrenches:
+            #         self.particle_wrenches[particle] = wrench_array
+            #     else:
+            #         # Apply low-pass filter to the force and torque values
+            #         self.particle_wrenches[particle] = self.k_low_pass_ft*self.particle_wrenches[particle] + (1 - self.k_low_pass_ft)*wrench_array
+            
+            # Turn the list of states into a dict keyed by the ID
+            # e.g. { 0: SegmentState, 7: SegmentState, 80: SegmentState, ... }
+            states_dict = {s.id: s for s in states_msg.states}
+
+            # Now iterate over your custom_static_particles
+            for particle in self.custom_static_particles:
+                # Only update if this particle actually exists in the message
+                if particle in states_dict:
+                    seg_state = states_dict[particle]
+
+                    # Update your dictionaries
+                    self.particle_positions[particle] = seg_state.pose.position
+                    self.particle_orientations[particle] = seg_state.pose.orientation
+                    self.particle_twists[particle] = seg_state.twist
+
+                    wrench_array = self.wrench_to_numpy(seg_state.wrench)
+                    if particle not in self.particle_wrenches:
+                        self.particle_wrenches[particle] = wrench_array
+                    else:
+                        # Apply low-pass filter
+                        self.particle_wrenches[particle] = (
+                            self.k_low_pass_ft * self.particle_wrenches[particle]
+                            + (1 - self.k_low_pass_ft) * wrench_array
+                        )
 
     def state_array_dx_callback(self, states_msg, perturbed_particle):
         if self.initialized:
@@ -563,17 +588,38 @@ class VelocityControllerNode:
             twists_dict[perturbed_particle] = {}
             wrenches_dict[perturbed_particle] = {}
 
-        for particle in self.custom_static_particles:
-            positions_dict[perturbed_particle][particle] = states_msg.states[particle].pose.position
-            orientations_dict[perturbed_particle][particle] = states_msg.states[particle].pose.orientation
-            twists_dict[perturbed_particle][particle] = states_msg.states[particle].twist
+        # for particle in self.custom_static_particles:
+        #     positions_dict[perturbed_particle][particle] = states_msg.states[particle].pose.position
+        #     orientations_dict[perturbed_particle][particle] = states_msg.states[particle].pose.orientation
+        #     twists_dict[perturbed_particle][particle] = states_msg.states[particle].twist
 
-            wrench_array = self.wrench_to_numpy(states_msg.states[particle].wrench)
-            if particle not in wrenches_dict[perturbed_particle]:
-                wrenches_dict[perturbed_particle][particle] = wrench_array
-            else:
-                # Apply low-pass filter to the force and torque values
-                wrenches_dict[perturbed_particle][particle] = self.k_low_pass_ft*wrenches_dict[perturbed_particle][particle] + (1 - self.k_low_pass_ft)*wrench_array
+        #     wrench_array = self.wrench_to_numpy(states_msg.states[particle].wrench)
+        #     if particle not in wrenches_dict[perturbed_particle]:
+        #         wrenches_dict[perturbed_particle][particle] = wrench_array
+        #     else:
+        #         # Apply low-pass filter to the force and torque values
+        #         wrenches_dict[perturbed_particle][particle] = self.k_low_pass_ft*wrenches_dict[perturbed_particle][particle] + (1 - self.k_low_pass_ft)*wrench_array
+                
+        # Build a dictionary from segment ID -> SegmentState
+        states_dict = {s.id: s for s in states_msg.states}
+
+        for particle in self.custom_static_particles:
+            if particle in states_dict:
+                seg_state = states_dict[particle]
+                
+                positions_dict[perturbed_particle][particle] = seg_state.pose.position
+                orientations_dict[perturbed_particle][particle] = seg_state.pose.orientation
+                twists_dict[perturbed_particle][particle] = seg_state.twist
+
+                wrench_array = self.wrench_to_numpy(seg_state.wrench)
+                if particle not in wrenches_dict[perturbed_particle]:
+                    wrenches_dict[perturbed_particle][particle] = wrench_array
+                else:
+                    # Apply low-pass filter
+                    wrenches_dict[perturbed_particle][particle] = (
+                        self.k_low_pass_ft * wrenches_dict[perturbed_particle][particle]
+                        + (1 - self.k_low_pass_ft) * wrench_array
+                    )
 
     def is_perturbed_states_set_for_particle(self,particle):
         """

@@ -43,7 +43,7 @@ class PerturbationPublisherNode:
         self.particle_twists = {}
         self.initial_values_set = False  # Initialization state variable
 
-        self.sub_state = rospy.Subscriber(self.deformable_object_state_topic_name, SegmentStateArray, self.state_array_callback, queue_size=10)
+        self.sub_state = rospy.Subscriber(self.deformable_object_state_topic_name + "_minimal", SegmentStateArray, self.state_array_callback, queue_size=10)
 
         # we will create a 3 odom publisher for each follower particle
         # so each of the following dictionaries will have elements as many as the follower particles
@@ -116,10 +116,21 @@ class PerturbationPublisherNode:
 
 
     def state_array_callback(self, states_msg):
-        for particle in self.custom_static_particles:
-            self.particle_positions[particle] = states_msg.states[particle].pose.position
-            self.particle_orientations[particle] = states_msg.states[particle].pose.orientation
-            self.particle_twists[particle] = states_msg.states[particle].twist
+        # for particle in self.custom_static_particles:
+        #     self.particle_positions[particle] = states_msg.states[particle].pose.position
+        #     self.particle_orientations[particle] = states_msg.states[particle].pose.orientation
+        #     self.particle_twists[particle] = states_msg.states[particle].twist
+            
+        # Convert to a set for faster membership checks
+        custom_particle_ids = set(self.custom_static_particles)
+
+        for segment_state in states_msg.states:
+            seg_id = segment_state.id
+            # Only update if this ID is in the custom_static_particles
+            if seg_id in custom_particle_ids:
+                self.particle_positions[seg_id] = segment_state.pose.position
+                self.particle_orientations[seg_id] = segment_state.pose.orientation
+                self.particle_twists[seg_id] = segment_state.twist
 
         if not self.initial_values_set:
             # After all initial relative positions and orientations have been calculated, set the initialization state variable to True

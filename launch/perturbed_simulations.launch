@@ -82,6 +82,9 @@
             <remap from="/$(arg fabric_state_topic_name)" 
                 to="/$(arg fabric_state_topic_name)_$(arg particle_id)$(arg axis_str)"/>
         
+            <remap from="/$(arg fabric_state_topic_name)_minimal" 
+                to="/$(arg fabric_state_topic_name)_$(arg particle_id)$(arg axis_str)_minimal"/>
+        
             <remap from="/$(arg fabric_markers_topic_name)" 
                 to="/$(arg fabric_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
 
@@ -156,6 +159,9 @@
             <!-- Publishers -->
             <remap from="/$(arg fabric_state_topic_name)" 
                 to="/$(arg fabric_state_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+                
+            <remap from="/$(arg fabric_state_topic_name)_minimal" 
+                to="/$(arg fabric_state_topic_name)_$(arg particle_id)$(arg axis_str)_minimal"/>
         
             <remap from="/$(arg fabric_markers_topic_name)" 
                 to="/$(arg fabric_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
@@ -231,6 +237,9 @@
             <!-- Publishers -->
             <remap from="/$(arg fabric_state_topic_name)" 
                 to="/$(arg fabric_state_topic_name)_$(arg particle_id)$(arg axis_str)"/>
+                
+            <remap from="/$(arg fabric_state_topic_name)_minimal" 
+                to="/$(arg fabric_state_topic_name)_$(arg particle_id)$(arg axis_str)_minimal"/>
         
             <remap from="/$(arg fabric_markers_topic_name)" 
                 to="/$(arg fabric_markers_topic_name)_$(arg particle_id)$(arg axis_str)"/>
