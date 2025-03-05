@@ -312,18 +312,20 @@ class VelocityControllerNode:
             min_distance_dz_topic_name    = self.min_distance_topic_name + "_" + str(particle) + "_z" 
         
             # Create the subscribers (also takes the particle argument)
-            # self.subs_min_distance_dx[particle]    = rospy.Subscriber(min_distance_dx_topic_name,    MinDistanceDataArray, self.min_distance_array_dx_callback,    particle, queue_size=10)
-            # rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            # self.subs_min_distance_dy[particle]    = rospy.Subscriber(min_distance_dy_topic_name,    MinDistanceDataArray, self.min_distance_array_dy_callback,    particle, queue_size=10)
-            # rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            # self.subs_min_distance_dz[particle]    = rospy.Subscriber(min_distance_dz_topic_name,    MinDistanceDataArray, self.min_distance_array_dz_callback,    particle, queue_size=10)
-            # rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            self.subs_min_distance_dx[particle]    = rospy.Subscriber(min_distance_dx_topic_name, MinDistanceDataArray, run_in_thread(self.min_distance_array_dx_callback),    particle, queue_size=10)
-            rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            self.subs_min_distance_dy[particle]    = rospy.Subscriber(min_distance_dy_topic_name, MinDistanceDataArray, run_in_thread(self.min_distance_array_dy_callback),    particle, queue_size=10)
-            rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
-            self.subs_min_distance_dz[particle]    = rospy.Subscriber(min_distance_dz_topic_name, MinDistanceDataArray, run_in_thread(self.min_distance_array_dz_callback),    particle, queue_size=10)
-            rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+            if experimental_run_subscribers_in_thread:
+                self.subs_min_distance_dx[particle]    = rospy.Subscriber(min_distance_dx_topic_name, MinDistanceDataArray, run_in_thread(self.min_distance_array_dx_callback),    particle, queue_size=10)
+                rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+                self.subs_min_distance_dy[particle]    = rospy.Subscriber(min_distance_dy_topic_name, MinDistanceDataArray, run_in_thread(self.min_distance_array_dy_callback),    particle, queue_size=10)
+                rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+                self.subs_min_distance_dz[particle]    = rospy.Subscriber(min_distance_dz_topic_name, MinDistanceDataArray, run_in_thread(self.min_distance_array_dz_callback),    particle, queue_size=10)
+                rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+            else:
+                self.subs_min_distance_dx[particle]    = rospy.Subscriber(min_distance_dx_topic_name,    MinDistanceDataArray, self.min_distance_array_dx_callback,    particle, queue_size=10)
+                rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+                self.subs_min_distance_dy[particle]    = rospy.Subscriber(min_distance_dy_topic_name,    MinDistanceDataArray, self.min_distance_array_dy_callback,    particle, queue_size=10)
+                rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+                self.subs_min_distance_dz[particle]    = rospy.Subscriber(min_distance_dz_topic_name,    MinDistanceDataArray, self.min_distance_array_dz_callback,    particle, queue_size=10)
+                rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
         ## ----------------------------------------------------------------------------------------
         
         self.experiments_manager = ExperimentsManager(self)
