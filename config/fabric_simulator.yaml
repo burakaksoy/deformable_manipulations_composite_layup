@@ -14,7 +14,7 @@ fabric_mesh_path: "" # .obj file, If empty, a rectangular fabric will be generat
 # If fabric_mesh_path is not empty string (i.e., "") the following parameters are not used.
 fabric_x: 1.5 # 1.5 # fabric x size in meters
 fabric_y: 1.0 # 1.0 # fabric y size in meters
-fabric_resolution: 7 # particle resolution per meter 
+fabric_resolution: 15 # particle resolution per meter 
 
 fabric_density: 1.0 # fabric mass per meter square (kg/m^2)
 
@@ -59,12 +59,12 @@ num_hang_corners: 4 # num of corners to hang fabric from (options: 0,1,2,3,4)
 
 ##  Fabric Corners for 1.5x1.0-7 resolution mesh 
 # custom_static_particles: [  0,7,80,87] # specify the particle ids to set as static
-custom_static_particles: [0,7] # specify the particle ids to set as static
+# custom_static_particles: [0,7] # specify the particle ids to set as static
 # custom_static_particles: [80,87] # specify the particle ids to set as static
 
 ##  Fabric Corners for 1.5x1.0-15 resolution mesh 
 # custom_static_particles: [  0,15,352,367] # specify the particle ids to set as static
-# custom_static_particles: [0,15] # specify the particle ids to set as static
+custom_static_particles: [0,15] # specify the particle ids to set as static
 # custom_static_particles: [352,367] # specify the particle ids to set as static
 
 max_sticking_force: [100.0, 100.0, 10.0] # N, If the force is greater than this value, the sticked particle will be detached, default: [100.0, 100.0, 100.0]

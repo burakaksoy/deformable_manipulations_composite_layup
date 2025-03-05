@@ -27,7 +27,7 @@
 <arg name="fabric_node_console_logs" default="log"/>
 
 <arg name="robot_1_id" default="0"/>
-<arg name="robot_2_id" default="7"/>
+<arg name="robot_2_id" default="15"/>
 
 <arg name="real_robot_mode_enabled" default="false"/>
 

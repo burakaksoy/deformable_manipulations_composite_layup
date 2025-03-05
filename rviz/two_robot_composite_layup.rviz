@@ -123,7 +123,7 @@ Visualization Manager:
       Displays:
         - Class: rviz/MarkerArray
           Enabled: true
-          Marker Topic: /fabric_markers_7_x
+          Marker Topic: /fabric_markers_15_x
           Name: MarkerArray-Fabric-15-X
           Namespaces:
             {}
@@ -131,7 +131,7 @@ Visualization Manager:
           Value: true
         - Class: rviz/MarkerArray
           Enabled: true
-          Marker Topic: /fabric_markers_7_y
+          Marker Topic: /fabric_markers_15_y
           Name: MarkerArray-Fabric-15-Y
           Namespaces:
             {}
@@ -139,7 +139,7 @@ Visualization Manager:
           Value: true
         - Class: rviz/MarkerArray
           Enabled: true
-          Marker Topic: /fabric_markers_7_z
+          Marker Topic: /fabric_markers_15_z
           Name: MarkerArray-Fabric-15-Z
           Namespaces:
             {}
@@ -179,7 +179,7 @@ Visualization Manager:
       Displays:
         - Class: rviz/MarkerArray
           Enabled: true
-          Marker Topic: /min_dist_markers_7_x
+          Marker Topic: /min_dist_markers_15_x
           Name: MarkerArray-Fabric-MinDist-15-X
           Namespaces:
             {}
@@ -187,7 +187,7 @@ Visualization Manager:
           Value: true
         - Class: rviz/MarkerArray
           Enabled: true
-          Marker Topic: /min_dist_markers_7_y
+          Marker Topic: /min_dist_markers_15_y
           Name: MarkerArray-Fabric-MinDist-15-Y
           Namespaces:
             {}
@@ -195,7 +195,7 @@ Visualization Manager:
           Value: true
         - Class: rviz/MarkerArray
           Enabled: true
-          Marker Topic: /min_dist_markers_7_z
+          Marker Topic: /min_dist_markers_15_z
           Name: MarkerArray-Fabric-MinDist-15-Z
           Namespaces:
             {}
@@ -272,7 +272,7 @@ Visualization Manager:
             Shaft Length: 1
             Shaft Radius: 0.05000000074505806
             Value: Axes
-          Topic: /odom_particle_7
+          Topic: /odom_particle_15
           Unreliable: false
           Value: true
         - Angle Tolerance: 1
@@ -416,7 +416,7 @@ Visualization Manager:
             Shaft Length: 1
             Shaft Radius: 0.05000000074505806
             Value: Axes
-          Topic: /odom_particle_7
+          Topic: /odom_particle_15
           Unreliable: false
           Value: true
         - Angle Tolerance: 0.009999999776482582
@@ -614,7 +614,7 @@ Visualization Manager:
             Y: 0
             Z: 0.11999999731779099
           Text Scale: 0.15000000596046448
-          Topic: /odom_particle_7
+          Topic: /odom_particle_15
           Unreliable: false
           Value: true
       Enabled: true
