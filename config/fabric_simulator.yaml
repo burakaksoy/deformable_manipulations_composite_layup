@@ -39,7 +39,7 @@ global_damp_coeff_v: 7.1e-1 # 2.1e-4; // 0.9e-3
 
 # Fabric Initial Transformations
 # initial_height: 0.0 # initial fabric height from ground (m) (Deprecated, use fabric_translation instead)
-fabric_translation: [1.9, 1.2, 1.0] # DEFAULT: [0, 0, 1.7] 
+fabric_translation: [1.9, 1.2, 1.25] # DEFAULT: [0, 0, 1.7] 
 # fabric_translation: [1.9, 2.86, 1.0] # On top of the mandrel
 fabric_rotationAxis: [0, 0, 1] # DEFAULT: [0, 1, 0] 
 fabric_rotationAngle: -1.570796327 # DEFAULT: 0.0 # 1.4 # Radians 
