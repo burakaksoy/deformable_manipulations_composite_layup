@@ -89,22 +89,31 @@ c3_alpha_obstacle: 1.0   # GOOD 1.0  # GOOD 0.05 # linear slope if h < 0 # Incre
 
 k_low_pass_ft: 0.9 # low pass filter coefficient for the ratio of ft values of the previous values (Must be between [0,1])
 
-wrench_max: [200.0, 200.0, 200.0] # maximum wrench values for each axis [Fx,Fy,Fz] for the Control Barrier Functions (CBF)s. 
-# w_stress_offset: [60.0, 60.0, 60.0] # offset values for the stress violation for each axis [Fx,Fy,Fz]
-w_stress_offset: [160.0, 160.0, 160.0] # offset values for the stress violation for each axis [Fx,Fy,Fz]
+# wrench_max: [200.0, 200.0, 200.0] # maximum wrench values for each axis [Fx,Fy,Fz] for the Control Barrier Functions (CBF)s. 
+wrench_max: [30.0, 30.0, 30.0] # maximum wrench values for each axis [Fx,Fy,Fz] for the Control Barrier Functions (CBF)s. 
+
+# w_stress_offset: [160.0, 160.0, 160.0] # offset values for the stress violation for each axis [Fx,Fy,Fz]
+w_stress_offset: [25.0, 25.0, 25.0] # offset values for the stress violation for each axis [Fx,Fy,Fz]
 
 # alpha(h_ft) function robot stress coefficients for each axis [Fx,Fy,Fz]
 # see: https://www.desmos.com/calculator/hc6lc7nzkk for the function visualizations
+c1_alpha_ft: [1.4, 1.4, 1.4] # Decrease this to start reacting early  NEW
+# c1_alpha_ft: [0.16, 0.16, 0.16] # Decrease this to start reacting early  NEW
+
+# c1_alpha_ft: [0.1, 0.1, 0.1] # Decrease this to start reacting early  
 # c1_alpha_ft: [0.1, 0.1, 0.1] # Decrease this to start reacting early  
 # c1_alpha_ft: [150, 150, 150] # Decrease this to start reacting early TOO RELAXED  
 # c1_alpha_ft: [9, 9, 9] # Decrease this to start reacting early  OLD
-c1_alpha_ft: [1.4, 1.4, 1.4] # Decrease this to start reacting early  NEW
 
 c2_alpha_ft: [1.0, 1.0, 1.0] # DO NOT CHANGE FROM 1.0. EXPERIMENTAL
 
+# c3_alpha_ft: [90.0, 90.0, 90.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively NEW
+# c3_alpha_ft: [60.0, 60.0, 60.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively 
+c3_alpha_ft: [40.0, 40.0, 40.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively 
+# c3_alpha_ft: [10.0, 10.0, 10.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively 
+
 # c3_alpha_ft: [10.0, 10.0, 10.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively # SEEMS TOO RELAXED FOR Fx,Fy,Fz
 # c3_alpha_ft: [90.0, 90.0, 90.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively OLD
-c3_alpha_ft: [90.0, 90.0, 90.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively NEW
 # c3_alpha_ft: [150.0, 150.0, 150.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively
 # c3_alpha_ft: [200.0, 200.0, 200.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively
 # c3_alpha_ft: [400.0, 400.0, 400.0] # linear slope if h < 0 # Increase this to remove the offset violation more agressively

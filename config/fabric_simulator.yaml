@@ -16,7 +16,7 @@ fabric_x: 1.5 # 1.5 # fabric x size in meters
 fabric_y: 1.0 # 1.0 # fabric y size in meters
 fabric_resolution: 15 # particle resolution per meter 
 
-fabric_density: 1.0 # fabric mass per meter square (kg/m^2)
+fabric_density: 0.1 # fabric mass per meter square (kg/m^2)
 
 fabric_stretching_compliance: 0.0001 # 1.0e-4 # 1.0e-4 # 1.0e-9 # 0.0
 fabric_bending_compliance: 0.01 #1.0e-2 # 2.0e-1 # 1.0e-7 # Note, fabric stretching compliance assumed to be 0.0 already.
@@ -35,7 +35,7 @@ contact_tolerance: 0.1 # m, It's like offset around the obstacle object for aabb
 contact_sdf_domain_offset: 2.0 # m, defines the minimum distance to a rigid body that will start contact checking and reporting minimum distance readings
 
 # Global artificial velocity damping coefficients. Defaults to 0.0. 
-global_damp_coeff_v: 7.1e-1 # 2.1e-4; // 0.9e-3
+global_damp_coeff_v: 7.1e-2 #7.1e-1 # 2.1e-4; // 0.9e-3
 
 # Fabric Initial Transformations
 # initial_height: 0.0 # initial fabric height from ground (m) (Deprecated, use fabric_translation instead)
@@ -68,7 +68,7 @@ custom_static_particles: [0,15] # specify the particle ids to set as static
 # custom_static_particles: [352,367] # specify the particle ids to set as static
 
 max_sticking_force: [100.0, 100.0, 10.0] # N, If the force is greater than this value, the sticked particle will be detached, default: [100.0, 100.0, 100.0]
-max_sticking_force_check_mode: 2 # -1: Disabled, 0:X, 1:Y, 2:Z, 3:Norm (Default: -1)
+max_sticking_force_check_mode: 2 # -1: Disabled, 0:X only, 1:Y only, 2:Z only, 3:L2 Norm (Default: -1)
 
 custom_static_particles_cmd_vel_topic_prefix: "cmd_vel_particle_" 
 custom_static_particles_odom_topic_prefix: "odom_particle_"
