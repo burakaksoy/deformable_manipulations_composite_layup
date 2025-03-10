@@ -10,6 +10,25 @@ valid_control_output_wait_timeout: 0.0 # (seconds) (To disable the timeout, set 
 ## ----------------------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------------------
+## Layup application mode related parameters
+
+# In the layup application mode, the target poses of the robots are set according to the sticking points of the fabric
+# If True, the controller is in the layup application mode
+layup_application_mode_enabled: False # default:False
+
+# To figure out which points are sticked to the mandrel, the controller subscribes sync topic of the simulations.
+# In reality, these points can be obtained from an AI supported vision system which can automatically detect the sticking points based on operator motions.
+# The topic name to subscribe the sync messages of the simulations
+sync_particle_updates_topic_name: "/sync_particle_updates"
+
+# To determine the target poses of the robots with respect to the nearest sticking point, we define a lift up angle.
+# The target pose is calculated by rotating the neutral position vector from the nearest sticking point to the robot pose in the flat fabric by this angle towards the +z axis. The origin of the rotation is the nearest sticking point. 
+# This causes the fabric to be lifted by the robots. 
+
+layup_application_lift_up_angle: 15.0 # (degrees) the angle to lift up the fabric when the robot is in the layup application mode
+## ----------------------------------------------------------------------------------------
+
+## ----------------------------------------------------------------------------------------
 real_robot_mode_enabled: False # default: False # If True, the real robot is used, publish the commands to the real robot as geometry_msgs/Twist messages
 
 # The topic names to publish the twist messages for the real robots

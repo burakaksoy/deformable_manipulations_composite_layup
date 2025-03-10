@@ -17,6 +17,8 @@ from std_msgs.msg import Float32, Float32MultiArray
 
 from fabric_simulator.msg import SegmentStateArray
 from fabric_simulator.msg import MinDistanceDataArray
+from fabric_simulator.msg import SyncParticleUpdateDataArray
+from fabric_simulator.msg import SyncParticleUpdateData
 
 from deformable_manipulations_composite_layup.msg import ControllerStatus
 
@@ -363,6 +365,50 @@ class VelocityControllerNode:
         ## ----------------------------------------------------------------------------------------
         
         ## ----------------------------------------------------------------------------------------
+        ## Layup application mode related parameters
+        
+        # 1) Read the "fabric" parameters
+        self.fabric_x = rospy.get_param("/fabric_x", 1.5)
+        self.fabric_y = rospy.get_param("/fabric_y", 1.0)
+        self.fabric_res = rospy.get_param("/fabric_resolution", 15)
+        # self.fabric_translation = rospy.get_param("/fabric_translation", [0, 0, 0])
+        # self.fabric_rotation_axis = rospy.get_param("/fabric_rotationAxis", [0, 0, 1])
+        # self.fabric_rotation_angle = rospy.get_param("/fabric_rotationAngle", 0.0)
+        self.fabric_scale = rospy.get_param("/fabric_scale", [1, 1, 1])
+        
+        # 2) Build up the default fabric mesh *in Python*, matching the C++ regular fabric creation logic:
+        self.default_mesh_positions = self.build_default_mesh_positions()
+        
+        # 3) Dictionaries for sticked particle states
+        
+        # IDs that are currently "stuck"
+        self.sticked_particles = set()    
+        # dict to hold the *current real-time position* of each stuck particle: {stuck_id : Point()}
+        self.sticked_particles_positions = {}
+        # For each robot-held particle => which stuck ID it is assigned to. If none, no entry.  
+        self.robot_assigned_stick = {}
+        
+        #  
+        self.layup_application_mode_enabled = rospy.get_param("~layup_application_mode_enabled", False)
+        
+        # Create the service server for enabling/disabling the layup application mode
+        self.set_layup_application_mode_server = rospy.Service('~set_layup_application_mode_enabled', SetBool, self.set_layup_application_mode_enabled)
+        
+        self.sync_particle_updates_topic_name = rospy.get_param("/sync_particle_updates_topic_name") # subscribed
+        
+        if experimental_run_subscribers_in_thread:
+            self.sync_particle_updates_subscriber = rospy.Subscriber(self.sync_particle_updates_topic_name, SyncParticleUpdateDataArray, run_in_thread(self.sync_particle_updates_callback), queue_size=10)
+        else:
+            self.sync_particle_updates_subscriber = rospy.Subscriber(self.sync_particle_updates_topic_name, SyncParticleUpdateDataArray, self.sync_particle_updates_callback, queue_size=10)    
+        rospy.sleep(0.1)  # Small delay to ensure publishers are fully set up
+        
+        self.layup_application_lift_up_angle = rospy.get_param("~layup_application_lift_up_angle", 0.0) # degrees
+        # Convert the angle to radians
+        self.layup_application_lift_up_angle = math.radians(self.layup_application_lift_up_angle)
+        
+        ## ----------------------------------------------------------------------------------------
+        
+        ## ----------------------------------------------------------------------------------------
         # Control output wait timeout
         self.valid_control_output_wait_timeout = rospy.get_param("~valid_control_output_wait_timeout", 5.0) # seconds
         if self.valid_control_output_wait_timeout <= 0.0:
@@ -640,7 +686,7 @@ class VelocityControllerNode:
             else:
                 return False
     
-    def calculate_target_poses(self):
+    def calculate_following_target_poses(self):
         if self.leader_odom_topic in self.followed_positions:
             
             leader_position = self.followed_positions[self.leader_odom_topic]
@@ -674,16 +720,17 @@ class VelocityControllerNode:
         err = np.zeros(3*len(self.custom_static_particles))
         avr_norm_pos_err = 0.0
         
-        self.calculate_target_poses() # Updates self.target_poses
+        if not self.layup_application_mode_enabled:
+            self.calculate_following_target_poses() # Updates self.target_poses
 
         for idx_particle, particle in enumerate(self.custom_static_particles):
             # Do not proceed until the initial values have been set
             if not (particle in self.particle_positions):
-                rospy.logwarn("particle: " + str(particle) + " state is not obtained yet.")
+                rospy.logwarn_throttle(5.0, "particle: " + str(particle) + " state is not obtained yet.")
                 continue
             
             if not (particle in self.target_poses):
-                rospy.logwarn("particle: " + str(particle) + " target pose is not set yet.")
+                rospy.logwarn_throttle(5.0, "particle: " + str(particle) + " target pose is not set yet.")
                 continue
 
             current_pose = Pose()
@@ -1543,6 +1590,18 @@ class VelocityControllerNode:
             self.followed_twists[topic_name] = odom.twist.twist
                 
     def publish_arrows_marker_array(self):
+        """
+        Publishes visualization arrows for each robot-held particle's target.
+        - If layup_application_mode_enabled = False: Arrow from leader to target
+        - If layup_application_mode_enabled = True:  Arrow from stuck-particle to target
+        """
+        if not self.initialized:
+            return
+
+        # If you have no targets assigned at all, just skip
+        if len(self.target_poses) == 0:
+            return
+        
         marker_array = MarkerArray()
         now = rospy.Time.now()
 
@@ -1573,15 +1632,35 @@ class VelocityControllerNode:
             # Pose not used in ARROW mode except for orientation,
             # but we need to set orientation to a valid quaternion
             marker.pose.orientation.w = 1.0
-
-            # Suppose you have a `leader_position` for each arrow.
-            # Here I'm assuming you store that in a structure or compute it on the fly.
-            leader_pos = self.followed_positions[self.leader_odom_topic]
-
+                        
             start_point = Point()
-            start_point.x = leader_pos.x
-            start_point.y = leader_pos.y
-            start_point.z = leader_pos.z
+            end_point = Point()
+
+            # Layup mode => arrow from stuck particle to target
+            if self.layup_application_mode_enabled:
+                assigned_stick = self.robot_assigned_stick.get(particle, None)
+                if assigned_stick is None:
+                    # This robot may have no assignment. Skip.
+                    continue
+
+                if assigned_stick not in self.sticked_particles_positions:
+                    # We do not yet know the real-time position of the stuck ID. Skip.
+                    continue
+
+                sp = self.sticked_particles_positions[assigned_stick]
+                start_point.x = sp.x
+                start_point.y = sp.y
+                start_point.z = sp.z
+
+            # Hand-follow mode => arrow from leader to target
+            else:
+                if self.leader_odom_topic not in self.followed_positions:
+                    # Leader unknown, skip
+                    continue
+                leader_pos = self.followed_positions[self.leader_odom_topic]
+                start_point.x = leader_pos.x
+                start_point.y = leader_pos.y
+                start_point.z = leader_pos.z
 
             end_point = Point()
             end_point.x = target_pose.position.x
@@ -1612,6 +1691,241 @@ class VelocityControllerNode:
             rospy.logwarn("Leader position is not available yet.")
                 
         return EmptyResponse()
+    ## ----------------------------------------------------------------------------------------
+    
+    ## ----------------------------------------------------------------------------------------
+    def build_default_mesh_positions(self):
+        """
+        Rebuild the regular rectangular mesh (with resolution, dimension, etc.) and
+        transform it the same way fabric simulator C++ code does. Store in a dict {particle_id: (x,y,z)}.
+        """
+        # 1) Compute how many divisions
+        num_particle_x = int(self.fabric_x * self.fabric_res)
+        num_particle_y = int(self.fabric_y * self.fabric_res)
+
+        # 2) Create linear spans from -fabric_x/2 .. +fabric_x/2, etc.
+        x_coords = []
+        start_x = -self.fabric_x / 2.0
+        step_x = self.fabric_x / num_particle_x
+        for i in range(num_particle_x + 1):
+            x_coords.append(start_x + i * step_x)
+
+        y_coords = []
+        start_y = -self.fabric_y / 2.0
+        step_y = self.fabric_y / num_particle_y
+        for j in range(num_particle_y + 1):
+            y_coords.append(start_y + j * step_y)
+
+        # 3) Create the mesh positions in "flat" (z=0)
+        #    The particle IDs in the C++ code are:  id = i*(num_particle_y+1) + j
+        mesh_positions = {}
+        for i in range(len(x_coords)):
+            for j in range(len(y_coords)):
+                pid = i*(num_particle_y + 1) + j # particle ID
+                px = x_coords[i]
+                py = y_coords[j]
+                pz = 0.0 
+                # If there is a scale/rotation/translation, apply them here as well
+                # e.g. do something like:
+                point = np.array([px, py, pz])
+                point = point * np.array(self.fabric_scale) # scale
+                # point = rotate_about_axis(point, self.fabric_rotation_axis, self.fabric_rotation_angle) # rotation
+                # point = point + self.fabric_translation # translation
+                mesh_positions[pid] = (point[0], point[1], point[2])
+
+        return mesh_positions
+    
+    def set_layup_application_mode_enabled(self, request):
+        self.layup_application_mode_enabled = request.data
+        rospy.loginfo("Layup application mode enabled state set to {}".format(request.data))
+        return SetBoolResponse(True, 'Successfully set layup application mode enabled state to {}'.format(request.data))
+    
+    def sync_particle_updates_callback(self, msg):
+        """
+        Called each time we receive a batch of updates on /sync_particle_updates.
+        - We do *not* forcibly recalc everything if we don't need to.
+        - If new static particles appear, then each robot might want to check
+            if that new stick is "closer" in the default mesh.
+        - If a dynamic update removes a stuck ID that was assigned to a robot,
+            that robot must pick a new stuck ID.
+        - If a dynamic update removes a stuck ID that no robot is using, ignore it.
+        - Also update self.sticked_particles_positions with the data.position
+            so we know the real-time location of that stuck ID.
+        """
+        if not self.initialized:
+            return
+        
+        # Just gather the IDs that became new static or dynamic
+        # so we can do partial updates.
+        newly_stuck_ids = []
+        unstuck_ids = []
+
+        for data in msg.data:
+            if data.type != SyncParticleUpdateData.SIMPLE_UPDATE:
+                continue
+            
+            if data.is_dynamic: # Means "unstick" it
+                # Remove the position of the sticked particle
+                self.sticked_particles_positions.pop(data.particle_id, None)
+                
+                if data.particle_id in self.sticked_particles:
+                    self.sticked_particles.remove(data.particle_id)
+                    # Mark it for a possible re-check
+                    unstuck_ids.append(data.particle_id)
+            else: # Means "stick" it
+                # Update the position of the sticked particle (data.position is the world position)
+                self.sticked_particles_positions[data.particle_id] = data.position
+                
+                if data.particle_id not in self.sticked_particles:
+                    self.sticked_particles.add(data.particle_id)
+                    newly_stuck_ids.append(data.particle_id)
+        
+        # Now do partial logic
+        # 1) For each newly stuck, see if it is "closer" than the current assignment of each robot
+        for new_id in newly_stuck_ids:
+            for robot_pid in self.custom_static_particles:
+                # If that robot has no assigned stick, we must assign
+                # Or if the new_id is closer in default mesh than the old assigned one
+                assigned = self.robot_assigned_stick.get(robot_pid, None)
+                if assigned is None:
+                    # Not assigned yet, so let’s pick
+                    self.assign_or_update_robot_target(robot_pid)
+                else:
+                    # Compare distances in default mesh
+                    (rx, ry, rz) = self.default_mesh_positions[robot_pid]
+                    assigned_sx, assigned_sy, _ = self.default_mesh_positions[assigned]
+                    new_sx, new_sy, _ = self.default_mesh_positions[new_id]
+
+                    old_dsqr = (rx - assigned_sx)**2 + (ry - assigned_sy)**2
+                    new_dsqr = (rx - new_sx)**2 + (ry - new_sy)**2
+                    if new_dsqr < old_dsqr:
+                        # Switch to the new one
+                        self.assign_or_update_robot_target(robot_pid, force_reassign=True)
+
+        # 2) For each unstuck, see if it was assigned. If so, reassign that robot
+        for un_id in unstuck_ids:
+            # Check if any robot was using this ID
+            for robot_pid, s_id in list(self.robot_assigned_stick.items()):
+                if s_id == un_id:
+                    # That robot lost its assigned stuck
+                    # remove
+                    self.robot_assigned_stick.pop(robot_pid, None)
+                    # reassign from the remaining stuck set
+                    self.assign_or_update_robot_target(robot_pid)
+                        
+        # After finishing the assignment for all robots:
+        self.publish_arrows_marker_array()
+            
+    def assign_or_update_robot_target(self, robot_pid, force_reassign=False):
+        """
+        Recompute the best stuck ID for this robot, based on default-mesh distance.
+        Then compute the "lifted" target pose if layup is enabled.
+        If we are not in layup mode, do nothing special (or do your old logic if desired).
+        """
+        if not self.layup_application_mode_enabled:
+            # If not in layup mode, controller uses the "leader hand" approach
+            # We do not forcibly rewrite anything here. 
+            return
+
+        # If no stuck IDs at all, do nothing
+        if len(self.sticked_particles) == 0:
+            return
+
+        # Find the default mesh location of the robot
+        if robot_pid not in self.default_mesh_positions:
+            return
+
+        # Among all self.sticked_particles, pick the ID with minimal
+        # squared XY distance in the default mesh to robot_pid
+        rx, ry, rz = self.default_mesh_positions[robot_pid]
+        best_id = None
+        best_dsqr = float('inf')
+        for sid in self.sticked_particles:
+            sx, sy, sz = self.default_mesh_positions[sid]
+            dx, dy = rx - sx, ry - sy
+            dsqr = dx*dx + dy*dy  # ignoring z in the "default" sense
+            if dsqr < best_dsqr:
+                best_dsqr = dsqr
+                best_id = sid
+
+        # If the best ID is the same as we have assigned *and* not forced to reassign, do nothing
+        already_assigned = self.robot_assigned_stick.get(robot_pid, None)
+        if (already_assigned == best_id) and (not force_reassign):
+            # No change
+            return
+
+        # Otherwise, assign
+        self.robot_assigned_stick[robot_pid] = best_id
+
+        # Actually build the lifted target if layup mode is on
+        # or do nothing if you want to keep it zero. 
+        new_pose = self.compute_lifted_target_pose(robot_pid, best_id)
+        self.target_poses[robot_pid] = new_pose
+
+    def compute_lifted_target_pose(self, robot_id, stick_id):
+        """
+        1) Use the default mesh to find the "reference XY distance" => d_xy_def
+        2) Let p_r = self.particle_positions[robot_id] be the real-time robot pos
+        3) Let p_s = self.sticked_particles_positions[stick_id] be the real-time stuck pos
+        4) The direction is (p_r - p_s) in XY => scale it to length d_xy_def
+        5) Then "lift" the final XY by cos(angle), and add a +Z offset of (d_xy_def * sin(angle)).
+        6) Return that as Pose()
+        """
+
+        # 1) From default mesh: XY distance
+        rx, ry, _ = self.default_mesh_positions[robot_id]
+        sx, sy, _ = self.default_mesh_positions[stick_id]
+        # The default XY distance:
+        dx_def, dy_def = (rx - sx), (ry - sy)
+        d_xy_def = math.sqrt(dx_def*dx_def + dy_def*dy_def)
+
+        # 2) Real-time positions
+        if (robot_id not in self.particle_positions) or (stick_id not in self.sticked_particles_positions):
+            # Fallback
+            pose = Pose()
+            pose.orientation.w = 1.0
+            return pose
+
+        p_r = self.particle_positions[robot_id]
+        p_s = self.sticked_particles_positions[stick_id]
+
+        # 3) Actual XY direction
+        dir_x = p_r.x - p_s.x
+        dir_y = p_r.y - p_s.y
+        len_xy = math.sqrt(dir_x*dir_x + dir_y*dir_y)
+        if len_xy < 1e-9:
+            # They’re basically at the same point
+            pose = Pose()
+            pose.position.x = p_s.x
+            pose.position.y = p_s.y
+            pose.position.z = p_s.z
+            pose.orientation.w = 1.0
+            return pose
+
+        # 4) Rescale to "default" length in XY
+        #    So that the XY vector becomes length = d_xy_def
+        scale = 1.0
+        if len_xy > 1e-9:
+            scale = d_xy_def / len_xy
+
+        # 5) "Lift" by angle
+        cosA = math.cos(self.layup_application_lift_up_angle)
+        sinA = math.sin(self.layup_application_lift_up_angle)
+
+        # We want final XY to be d_xy_def * cosA in length,
+        # so we do: final_xy_len = d_xy_def * cosA
+        # But we already have "dir_x * scale => d_xy_def in XY", so multiply by cosA again:
+        final_x = dir_x * scale * cosA
+        final_y = dir_y * scale * cosA
+        final_z = d_xy_def * sinA
+
+        # 6) So final target is p_s + that offset
+        pose = Pose()
+        pose.position.x = p_s.x + final_x
+        pose.position.y = p_s.y + final_y
+        pose.position.z = p_s.z + final_z
+        pose.orientation.w = 1.0  # identity
+        return pose
     ## ----------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
