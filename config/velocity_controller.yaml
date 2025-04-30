@@ -25,7 +25,7 @@ sync_particle_updates_topic_name: "/sync_particle_updates"
 # The target pose is calculated by rotating the neutral position vector from the nearest sticking point to the robot pose in the flat fabric by this angle towards the +z axis. The origin of the rotation is the nearest sticking point. 
 # This causes the fabric to be lifted by the robots. 
 
-layup_application_lift_up_angle: 15.0 # (degrees) the angle to lift up the fabric when the robot is in the layup application mode
+layup_application_lift_up_angle: 30.0 # (degrees) the angle to lift up the fabric when the robot is in the layup application mode
 ## ----------------------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------------------

@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="is_remote" default="false"/>
+
+    <arg name="real_robot_mode_enabled" default="false"/>
+    
+    <group if="$(arg is_remote)">
+        <machine name="burak-p1-20" address="192.168.1.200" env-loader="/home/burak/catkin_ws_deformable/src/deformable_manipulations_composite_layup/scripts/env_loader.sh" user="burak" password="1q2w3e"  default="true"/>
+    </group>
+
+    <!-- If the real robot mode is enabled -->
+    <group if="$(arg real_robot_mode_enabled)">
+        <!-- Run RViz with a specified config file -->
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find deformable_manipulations_composite_layup)/rviz/two_robot_composite_layup.rviz" />
+        <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find deformable_manipulations_composite_layup)/rviz/two_robot_composite_layup_real.rviz" /> -->
+    </group>
+    
+    <!-- If the real robot mode is NOT enabled -->
+    <group unless="$(arg real_robot_mode_enabled)">
+        <!-- Run RViz with a specified config file -->
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find deformable_manipulations_composite_layup)/rviz/two_robot_composite_layup.rviz" />
+    </group>
+
+</launch>

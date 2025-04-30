@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="is_remote" default="false"/>
+
+    <arg name="real_robot_mode_enabled" default="false"/>
+
+    <arg name="gui_mode" default="composite_sheet_application_test"/>
+    <arg name="gui_dual_spacenav_twist" default="true"/>
+    
+    <group if="$(arg is_remote)">
+        <machine name="burak-p1-20" address="192.168.1.200" env-loader="/home/burak/catkin_ws_deformable/src/deformable_manipulations_composite_layup/scripts/env_loader.sh" user="burak" password="1q2w3e"  default="true"/>
+    </group>
+
+    <!-- If the real robot mode is enabled -->
+    <group if="$(arg real_robot_mode_enabled)">
+        <node pkg="fabric_simulator" type="test_gui.py" name="test_gui" output="screen">
+            <param name="mode" value="$(arg gui_mode)"/>
+            <param name="dual_spacenav_twist" value="$(arg gui_dual_spacenav_twist)"/>
+        </node>
+    </group>
+    
+    <!-- If the real robot mode is NOT enabled -->
+    <group unless="$(arg real_robot_mode_enabled)">
+        <node pkg="fabric_simulator" type="test_gui.py" name="test_gui" output="screen">
+            <param name="mode" value="$(arg gui_mode)"/>
+            <param name="dual_spacenav_twist" value="$(arg gui_dual_spacenav_twist)"/>
+        </node>
+    </group>
+
+</launch>

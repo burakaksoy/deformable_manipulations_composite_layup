@@ -5,21 +5,36 @@ sleep 1s;
 # sleep 1s;
 
 gnome-terminal --tab --title="All" --command "bash -c \"source ~/.bashrc; 
-                                                        roslaunch deformable_manipulations_composite_layup main_launcher_two_robot.launch is_remote:=true launch_controller:=false real_robot_mode_enabled:=false; 
+                                                        roslaunch deformable_manipulations_composite_layup main_launcher_two_robot.launch \
+                                                        is_remote:=true \
+                                                        launch_controller:=false \
+                                                        real_robot_mode_enabled:=false; 
                                                         exec bash\"";
 
 # gnome-terminal --tab --title="All" --command "bash -c \"source ~/.bashrc; 
-#                                                         roslaunch deformable_manipulations_composite_layup main_launcher_two_robot.launch is_remote:=true launch_controller:=false real_robot_mode_enabled:=true; 
+#                                                         roslaunch deformable_manipulations_composite_layup main_launcher_two_robot.launch \
+#                                                         is_remote:=true \
+#                                                         launch_controller:=false \
+#                                                         real_robot_mode_enabled:=true; 
 #                                                         exec bash\"";
 
 sleep 4s;
 
-gnome-terminal --tab --title="RVIZ" --command "bash -c \"source ~/.bashrc; rosrun rviz rviz -d ~/catkin_ws_deformable/src/deformable_manipulations_composite_layup/rviz/two_robot_composite_layup.rviz; exec bash\"";
-# gnome-terminal --tab --title="RVIZ" --command "bash -c \"source ~/.bashrc; rosrun rviz rviz -d ~/catkin_ws_deformable/src/deformable_manipulations_composite_layup/rviz/two_robot_composite_layup_real.rviz; exec bash\"";
+gnome-terminal --tab --title="RVIZ" --command "bash -c \"source ~/.bashrc; 
+                                                        roslaunch deformable_manipulations_composite_layup rviz.launch \
+                                                        is_remote:=true \
+                                                        real_robot_mode_enabled:=false; 
+                                                        exec bash\"";
 sleep 4s;
 
-gnome-terminal --tab --title="GUI" --command "bash -c \"source ~/.bashrc; rosrun fabric_simulator test_gui.py _mode:="composite_sheet_application_test" _dual_spacenav_twist:=True; exec bash\"";
-sleep 1s;
+gnome-terminal --tab --title="GUI" --command "bash -c \"source ~/.bashrc; 
+                                                        roslaunch deformable_manipulations_composite_layup gui.launch \
+                                                        is_remote:=true \
+                                                        real_robot_mode_enabled:=false \
+                                                        gui_mode:=composite_sheet_application_test \
+                                                        gui_dual_spacenav_twist:=true;
+                                                        exec bash\"";
+sleep 3s;
 
 # # To publish to "/space_nav/twist"
 # # If you have a space mouse, you can use the following command to start the spacenav node:
@@ -30,10 +45,16 @@ sleep 1s;
 # # Second space mouse as keyboard teleop
 # gnome-terminal --tab --title="Spacenav2" --command "bash -c \"source ~/.bashrc; rosrun deformable_manipulations_composite_layup teleop_twist_keyboard_linear.py; exec bash\"";
 # sleep 1s;
-# Or use the following command to start the spacenav nodes -one in the current computer and the other in the remote computer:
-gnome-terminal --tab --title="Spacenav" --command "bash -c \"source ~/.bashrc; roslaunch deformable_manipulations_composite_layup spacemouse.launch dual_spacemouse:=true; exec bash\"";
 
-gnome-terminal --tab --title="Controller" --command "bash -c \"source ~/.bashrc; roslaunch deformable_manipulations_composite_layup velocity_controller.launch; exec bash\"";
+# Or use the following command to start the spacenav nodes -one in the current computer and the other in the remote computer:
+gnome-terminal --tab --title="Spacenav" --command "bash -c \"source ~/.bashrc; 
+                                                            roslaunch deformable_manipulations_composite_layup spacemouse.launch \
+                                                            dual_spacemouse:=true; 
+                                                            exec bash\"";
+
+gnome-terminal --tab --title="Controller" --command "bash -c \"source ~/.bashrc; 
+                                                                roslaunch deformable_manipulations_composite_layup velocity_controller.launch; 
+                                                                exec bash\"";
 sleep 1s;
 
 # To start the controller, call the service with command:
