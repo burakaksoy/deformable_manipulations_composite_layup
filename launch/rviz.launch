@@ -11,10 +11,9 @@
     <!-- If the real robot mode is enabled -->
     <group if="$(arg real_robot_mode_enabled)">
         <!-- Run RViz with a specified config file -->
-        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find deformable_manipulations_composite_layup)/rviz/two_robot_composite_layup.rviz" />
-        <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find deformable_manipulations_composite_layup)/rviz/two_robot_composite_layup_real.rviz" /> -->
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find deformable_manipulations_composite_layup)/rviz/two_robot_composite_layup_real.rviz" />
     </group>
-    
+
     <!-- If the real robot mode is NOT enabled -->
     <group unless="$(arg real_robot_mode_enabled)">
         <!-- Run RViz with a specified config file -->

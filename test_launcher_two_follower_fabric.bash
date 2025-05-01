@@ -23,7 +23,7 @@ sleep 4s;
 gnome-terminal --tab --title="RVIZ" --command "bash -c \"source ~/.bashrc; 
                                                         roslaunch deformable_manipulations_composite_layup rviz.launch \
                                                         is_remote:=true \
-                                                        real_robot_mode_enabled:=false; 
+                                                        real_robot_mode_enabled:=true; 
                                                         exec bash\"";
 sleep 4s;
 
