@@ -29,15 +29,15 @@ layup_application_lift_up_angle: 30.0 # (degrees) the angle to lift up the fabri
 ## ----------------------------------------------------------------------------------------
 
 ## ----------------------------------------------------------------------------------------
-real_robot_mode_enabled: False # default: False # If True, the real robot is used, publish the commands to the real robot as geometry_msgs/Twist messages
+real_robot_mode_enabled: True # default: False # If True, the real robot is used, publish the commands to the real robot as geometry_msgs/Twist messages
 
 # The topic names to publish the twist messages for the real robots
 # The order is important, the first robot is assumed to control the first custom static particle id in the fabric simulation, The second robot is assumed to control the second custom static particle id in the fabric simulation etc.
 # The number of robot_command_topic_names should be equal to the number of custom static particles in the fabric simulation, otherwise it will raise an error.
 # If the real_robot_mode_enabled is False, the robot_command_topic_names are ignored.
 robot_command_topic_names:
-  - "/oarbot_silver/cmd_vel_world"
   - "/oarbot_blue/cmd_vel_world"
+  - "/oarbot_silver/cmd_vel_world"
 ## ----------------------------------------------------------------------------------------
 
 # The topic names to subscribe the odometry messages for the followed frames (e.g. human hands)

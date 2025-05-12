@@ -26,10 +26,11 @@
 
 <arg name="fabric_node_console_logs" default="log"/>
 
-<arg name="robot_1_id" default="0"/>
-<arg name="robot_2_id" default="15"/>
+<arg name="robot_2_id" default="0"/>
+<arg name="robot_1_id" default="15"/>
 
 <arg name="real_robot_mode_enabled" default="false"/>
+<arg name="real_human_mode_enabled" default="false"/>
 
 <!-- Set this to false if you would like to launch the controller seperately -->
 <arg name="launch_controller" default="true" /> 
@@ -132,29 +133,18 @@
 <!-- Particle $(arg robot_1_id) -->
 <group if="$(arg real_robot_mode_enabled)">
     <arg name="particle_id" value="$(arg robot_1_id)" />
-    <!-- Utility node to publish where the ronot end-effector is at as a odom message -->
+    <!-- Utility node to publish where the robot end-effector is at as a odom message -->
     <node type="tf_to_odom_node_advanced.py" name="tf_to_odom_node_$(arg particle_id)" pkg="topic_tf_transformers" output="screen">
         <rosparam param="odom_topic_name_out"   subst_value="True">/odom_particle_$(arg particle_id)</rosparam>
         <rosparam param="tf_a_frame_name"       subst_value="True">map</rosparam>
         <rosparam param="tf_b_frame_name"       subst_value="True">j2n6s300_left_end_effector</rosparam>
         <rosparam param="pub_rate"              subst_value="True">100.0</rosparam>
-        <!-- <rosparam param="tf_b_to_c_pose"        subst_value="True">
-            orientation:
-                x: 0.5
-                y: 0.5
-                z: 0.5
-                w: -0.5
-            position:
-                x: 0.0
-                y: 0.0
-                z: 0.0
-        </rosparam> -->
         <rosparam param="tf_b_to_c_pose"        subst_value="True">
             orientation:
-                x: 0.5
-                y: -0.5
-                z: 0.5
-                w: 0.5
+                x: 0.0
+                y: 0.7071068
+                z: 0.7071068
+                w: 0.0
             position:
                 x: 0.0
                 y: 0.0
@@ -167,35 +157,78 @@
 <!-- Particle $(arg robot_2_id) -->
 <group if="$(arg real_robot_mode_enabled)">
     <arg name="particle_id" value="$(arg robot_2_id)" />
-    <!-- Utility node to publish where the ronot end-effector is at as a odom message -->
+    <!-- Utility node to publish where the robot end-effector is at as a odom message -->
     <node type="tf_to_odom_node_advanced.py" name="tf_to_odom_node_$(arg particle_id)" pkg="topic_tf_transformers" output="screen">
         <rosparam param="odom_topic_name_out"   subst_value="True">/odom_particle_$(arg particle_id)</rosparam>
         <rosparam param="tf_a_frame_name"       subst_value="True">map</rosparam>
         <rosparam param="tf_b_frame_name"       subst_value="True">j2n6s300_right_end_effector</rosparam>
         <rosparam param="pub_rate"              subst_value="True">100.0</rosparam>
-        <!-- <rosparam param="tf_b_to_c_pose"        subst_value="True">
-            orientation:
-                x: 0.5
-                y: 0.5
-                z: 0.5
-                w: -0.5
-            position:
-                x: 0.0
-                y: 0.0
-                z: 0.0
-        </rosparam> -->
         <rosparam param="tf_b_to_c_pose"        subst_value="True">
             orientation:
-                x: 0.5
-                y: -0.5
-                z: 0.5
-                w: 0.5
+                x: 0.7071068
+                y: 0.0
+                z: 0.0
+                w: 0.7071068
             position:
                 x: 0.0
                 y: 0.0
                 z: 0.0
         </rosparam>
         <rosparam param="twist_topic_name_in"    subst_value="True">/oarbot_blue/cmd_vel_world</rosparam>
+    </node>
+</group>
+
+<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+
+
+<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+<!-- Obtain ODOM data from real human body joint tracking instead of fake odom GUI -->
+
+<!-- Right Hand (hand 1) -->
+<group if="$(arg real_human_mode_enabled)">
+    <arg name="hand_id" value="1" />
+    <!-- Utility node to publish where the robot end-effector is at as a odom message -->
+    <node type="tf_to_odom_node_advanced.py" name="tf_to_odom_node_hand_$(arg hand_id)" pkg="topic_tf_transformers" output="screen">
+        <rosparam param="odom_topic_name_out"   subst_value="True">/odom_hand_$(arg hand_id)</rosparam>
+        <rosparam param="tf_a_frame_name"       subst_value="True">map</rosparam>
+        <rosparam param="tf_b_frame_name"       subst_value="True">body_joint_wrist_right</rosparam>
+        <rosparam param="pub_rate"              subst_value="True">100.0</rosparam>
+        <rosparam param="tf_b_to_c_pose"        subst_value="True">
+            orientation:
+                x: 0.0
+                y: 0.0
+                z: 0.0
+                w: 1.0
+            position:
+                x: 0.0
+                y: 0.0
+                z: 0.0
+        </rosparam>
+        <!-- <rosparam param="twist_topic_name_in"    subst_value="True">/oarbot_silver/cmd_vel_world</rosparam> -->
+    </node>
+</group>
+
+<!-- Left Hand (hand 2) -->
+<group if="$(arg real_human_mode_enabled)">
+    <arg name="hand_id" value="2" />
+    <!-- Utility node to publish where the robot end-effector is at as a odom message -->
+    <node type="tf_to_odom_node_advanced.py" name="tf_to_odom_node_$(arg hand_id)" pkg="topic_tf_transformers" output="screen">
+        <rosparam param="odom_topic_name_out"   subst_value="True">/odom_hand_$(arg hand_id)</rosparam>
+        <rosparam param="tf_a_frame_name"       subst_value="True">map</rosparam>
+        <rosparam param="tf_b_frame_name"       subst_value="True">body_joint_wrist_left</rosparam>
+        <rosparam param="pub_rate"              subst_value="True">100.0</rosparam>
+        <rosparam param="tf_b_to_c_pose"        subst_value="True">
+            orientation:
+                x: 0.0
+                y: 0.0
+                z: 0.0
+                w: 1.0
+            position:
+                x: 0.0
+                y: 0.0
+                z: 0.0
+        </rosparam>
+        <!-- <rosparam param="twist_topic_name_in"    subst_value="True">/oarbot_blue/cmd_vel_world</rosparam> -->
     </node>
 </group>
 

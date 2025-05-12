@@ -40,10 +40,11 @@ global_damp_coeff_v: 7.1e-2 #7.1e-1 # 2.1e-4; // 0.9e-3
 # Fabric Initial Transformations
 # initial_height: 0.0 # initial fabric height from ground (m) (Deprecated, use fabric_translation instead)
 # fabric_translation: [1.9, 1.2, 1.25] # DEFAULT: [0, 0, 1.7] 
-fabric_translation: [1.9, 2.86, 1.2] # On top of the mandrel
+fabric_translation: [2.1, 1.9, 1.12] # REAL INITIAL POSITION 
+# fabric_translation: [1.9, 2.86, 1.2] # On top of the mandrel
 fabric_rotationAxis: [0, 0, 1] # DEFAULT: [0, 1, 0] 
 fabric_rotationAngle: -1.570796327 # DEFAULT: 0.0 # 1.4 # Radians 
-fabric_scale: [1, 1, 1] # DEFAULT: [1, 1, 1] 
+fabric_scale: [0.6666666666, 1.5, 1] # DEFAULT: [1, 1, 1] 
 
 # If fabric_mesh_path is not empty string (i.e., "") num_hang_corners is NOT used.
 # Also, for some rotations specified this may NOT work.
@@ -98,7 +99,9 @@ min_dist_to_rb_pub_rate: 30.0 # Hz, frequency to publish minimum distances to th
 
 # Rigid body scene .json file, If empty, no rigid bodies exist in the simulator
 # rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal.json 
-rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal-no-ceiling.json 
+# rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal-no-ceiling.json 
+# rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal-Rotated.json 
+rb_scene_config_path: $(find fabric_simulator)/config/scenes/ClothOnMandrelReal-no-ceiling-Rotated.json 
 
 is_dependant_simulator: false # (default: false) if true, the simulator subscribes to a topic to get the particle dynamicity change updates to synchronize with the main simulator, otherwise the simulator publishes the particle dynamicity change updates to a topic for other simulators to synchronize. The changes are transferred via a custom synchronization topic.
 

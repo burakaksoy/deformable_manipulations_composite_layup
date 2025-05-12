@@ -4,19 +4,21 @@ sleep 1s;
 # gnome-terminal --tab --title="ROSCORE" --command "bash -c \"source ~/.bashrc; killall gzclient && killall gzserver; roscore; exec bash\"";
 # sleep 1s;
 
-gnome-terminal --tab --title="All" --command "bash -c \"source ~/.bashrc; 
-                                                        roslaunch deformable_manipulations_composite_layup main_launcher_two_robot.launch \
-                                                        is_remote:=true \
-                                                        launch_controller:=false \
-                                                        real_robot_mode_enabled:=false; 
-                                                        exec bash\"";
-
 # gnome-terminal --tab --title="All" --command "bash -c \"source ~/.bashrc; 
 #                                                         roslaunch deformable_manipulations_composite_layup main_launcher_two_robot.launch \
 #                                                         is_remote:=true \
 #                                                         launch_controller:=false \
-#                                                         real_robot_mode_enabled:=true; 
+#                                                         real_robot_mode_enabled:=false \
+#                                                         real_human_mode_enabled:=false; 
 #                                                         exec bash\"";
+
+gnome-terminal --tab --title="All" --command "bash -c \"source ~/.bashrc; 
+                                                        roslaunch deformable_manipulations_composite_layup main_launcher_two_robot.launch \
+                                                        is_remote:=true \
+                                                        launch_controller:=false \
+                                                        real_robot_mode_enabled:=true \
+                                                        real_human_mode_enabled:=true;
+                                                        exec bash\"";
 
 sleep 4s;
 
