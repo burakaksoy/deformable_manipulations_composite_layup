@@ -192,6 +192,8 @@
         <rosparam param="odom_topic_name_out"   subst_value="True">/odom_hand_$(arg hand_id)</rosparam>
         <rosparam param="tf_a_frame_name"       subst_value="True">map</rosparam>
         <rosparam param="tf_b_frame_name"       subst_value="True">body_joint_wrist_right</rosparam>
+        <!-- Fix the orientation of the hand wrist with respect to the map below to remove orientation dependency -->
+        <rosparam param="is_same_ori_a_to_b"    subst_value="True">true</rosparam>
         <rosparam param="pub_rate"              subst_value="True">100.0</rosparam>
         <rosparam param="tf_b_to_c_pose"        subst_value="True">
             orientation:
@@ -216,6 +218,8 @@
         <rosparam param="odom_topic_name_out"   subst_value="True">/odom_hand_$(arg hand_id)</rosparam>
         <rosparam param="tf_a_frame_name"       subst_value="True">map</rosparam>
         <rosparam param="tf_b_frame_name"       subst_value="True">body_joint_wrist_left</rosparam>
+        <!-- Fix the orientation of the hand wrist with respect to the map below to remove orientation dependency -->
+        <rosparam param="is_same_ori_a_to_b"    subst_value="True">true</rosparam>
         <rosparam param="pub_rate"              subst_value="True">100.0</rosparam>
         <rosparam param="tf_b_to_c_pose"        subst_value="True">
             orientation:
