@@ -2,7 +2,7 @@
 <launch>
     <arg name="is_remote" default="false"/>
 
-    <arg name="real_robot_mode_enabled" default="false"/>
+    <arg name="real_human_mode_enabled" default="false"/>
 
     <arg name="gui_mode" default="composite_sheet_application_test"/>
     <arg name="gui_dual_spacenav_twist" default="true"/>
@@ -12,18 +12,20 @@
     </group>
 
     <!-- If the real robot mode is enabled -->
-    <group if="$(arg real_robot_mode_enabled)">
+    <group if="$(arg real_human_mode_enabled)">
         <node pkg="fabric_simulator" type="test_gui.py" name="test_gui" output="screen">
             <param name="mode" value="$(arg gui_mode)"/>
             <param name="dual_spacenav_twist" value="$(arg gui_dual_spacenav_twist)"/>
+            <param name="subscribe_to_odom_hands" value="true"/>
         </node>
     </group>
     
     <!-- If the real robot mode is NOT enabled -->
-    <group unless="$(arg real_robot_mode_enabled)">
+    <group unless="$(arg real_human_mode_enabled)">
         <node pkg="fabric_simulator" type="test_gui.py" name="test_gui" output="screen">
             <param name="mode" value="$(arg gui_mode)"/>
             <param name="dual_spacenav_twist" value="$(arg gui_dual_spacenav_twist)"/>
+            <param name="subscribe_to_odom_hands" value="false"/>
         </node>
     </group>
 

@@ -18,8 +18,8 @@ fabric_resolution: 15 # particle resolution per meter
 
 fabric_density: 0.1 # fabric mass per meter square (kg/m^2)
 
-fabric_stretching_compliance: 0.0001 # 1.0e-4 # 1.0e-4 # 1.0e-9 # 0.0
-fabric_bending_compliance: 0.01 #1.0e-2 # 2.0e-1 # 1.0e-7 # Note, fabric stretching compliance assumed to be 0.0 already.
+fabric_stretching_compliance: 0.001 # 1.0e-4 # 1.0e-4 # 1.0e-9 # 0.0
+fabric_bending_compliance: 0.1 #1.0e-2 # 2.0e-1 # 1.0e-7 # Note, fabric stretching compliance assumed to be 0.0 already.
 
 set_fabric_stretching_compliance_service_name: "set_fabric_stretching_compliance" 
 set_fabric_bending_compliance_service_name: "set_fabric_bending_compliance" 
@@ -42,9 +42,11 @@ global_damp_coeff_v: 7.1e-2 #7.1e-1 # 2.1e-4; // 0.9e-3
 # fabric_translation: [1.9, 1.2, 1.25] # DEFAULT: [0, 0, 1.7] 
 fabric_translation: [2.1, 1.9, 1.12] # REAL INITIAL POSITION 
 # fabric_translation: [1.9, 2.86, 1.2] # On top of the mandrel
-fabric_rotationAxis: [0, 0, 1] # DEFAULT: [0, 1, 0] 
+fabric_rotationAxis: [0.0, 0.0, 1.0] # DEFAULT: [0, 1, 0] 
 fabric_rotationAngle: -1.570796327 # DEFAULT: 0.0 # 1.4 # Radians 
-fabric_scale: [0.6666666666, 1.5, 1] # DEFAULT: [1, 1, 1] 
+fabric_scale: [0.9333, 1.8, 1] # DEFAULT: [1, 1, 1] 
+# fabric_scale: [0.8, 1.8, 1] # DEFAULT: [1, 1, 1] 
+# fabric_scale: [0.6666666666, 1.5, 1] # DEFAULT: [1, 1, 1] 
 
 # If fabric_mesh_path is not empty string (i.e., "") num_hang_corners is NOT used.
 # Also, for some rotations specified this may NOT work.
